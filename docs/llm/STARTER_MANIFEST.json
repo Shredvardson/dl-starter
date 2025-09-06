@@ -11,10 +11,10 @@
     "features": { "billing": false, "orgs": false, "ai": false }
   },
   "customize_these_files": [
-    { "path": "app/layout.tsx", "reason": "Title/metadata + theme import" },
-    { "path": "styles/tokens.css", "reason": "Brand & semantic tokens" },
-    { "path": "app/(marketing)/page.tsx", "reason": "Landing copy" },
-    { "path": "app/(app)/dashboard/page.tsx", "reason": "Default signed-in area" },
+    { "path": "src/app/layout.tsx", "reason": "Title/metadata + theme import" },
+    { "path": "src/styles/tokens.css", "reason": "Brand & semantic tokens" },
+    { "path": "src/app/(marketing)/page.tsx", "reason": "Landing copy" },
+    { "path": "src/app/(app)/dashboard/page.tsx", "reason": "Default signed-in area" },
     { "path": "app.config.ts", "reason": "Per-app toggles (billing/orgs/ai)" },
     { "path": "README.md", "reason": "Project name & quickstart" }
   ],
