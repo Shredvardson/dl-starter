@@ -1,0 +1,16 @@
+import { describe, it, expect } from 'vitest';
+import { sum } from '../lib/sum';
+
+describe('sum', () => {
+  it('adds positive numbers', () => {
+    expect(sum(2, 3)).toBe(5);
+  });
+
+  it('adds negative numbers', () => {
+    expect(sum(-2, -3)).toBe(-5);
+  });
+
+  it('adds with zero', () => {
+    expect(sum(5, 0)).toBe(5);
+  });
+});

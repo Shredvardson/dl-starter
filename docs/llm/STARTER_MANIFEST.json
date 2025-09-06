@@ -1,0 +1,33 @@
+{
+  "$schema": "https://example.com/starter-manifest.schema.json",
+  "version": 1,
+  "template": true,
+  "defaults": {
+    "app_name": "Your App",
+    "app_slug": "your-app",
+    "homepage_route": "/",
+    "signed_in_route": "/dashboard",
+    "brand": { "hue": 222 },
+    "features": { "billing": false, "orgs": false, "ai": false }
+  },
+  "customize_these_files": [
+    { "path": "app/layout.tsx", "reason": "Title/metadata + theme import" },
+    { "path": "styles/tokens.css", "reason": "Brand & semantic tokens" },
+    { "path": "app/(marketing)/page.tsx", "reason": "Landing copy" },
+    { "path": "app/(app)/dashboard/page.tsx", "reason": "Default signed-in area" },
+    { "path": "app.config.ts", "reason": "Per-app toggles (billing/orgs/ai)" },
+    { "path": "README.md", "reason": "Project name & quickstart" }
+  ],
+  "recipes": {
+    "auth": "docs/recipes/auth.md",
+    "db": "docs/recipes/db.md",
+    "payments": "docs/recipes/stripe.md",
+    "ui_pack": "docs/recipes/shadcn.md"
+  },
+  "env_placeholders": [
+    "NEXT_PUBLIC_FLAG_BETA_FEATURE=false",
+    "AUTH_ENABLED=0",
+    "STRIPE_PUBLIC_KEY=",
+    "STRIPE_SECRET_KEY="
+  ]
+}

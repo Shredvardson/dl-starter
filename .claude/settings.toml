@@ -1,0 +1,8 @@
+[[hooks]]
+event = "PostToolUse"
+command = "./scripts/claude-hook-dispatcher.sh $CLAUDE_FILE_PATHS"
+run_in_background = true
+
+[hooks.matcher]
+tool_name = "edit_file"
+file_paths = ["app/**/*","components/**/*","lib/**/*","styles/**/*","tests/**/*","__tests__/**/*"]
