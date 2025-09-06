@@ -1,0 +1,11 @@
+name: "Feature request"
+description: "Propose an improvement to the starter"
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: pitch
+    attributes:
+      label: Pitch
+      description: What and why?
+    validations: { required: true }

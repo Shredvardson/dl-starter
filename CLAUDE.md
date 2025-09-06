@@ -21,7 +21,7 @@ Hard rules:
 - Never ask for or store secrets (SSH keys, tokens) in files or .env.
 - If `git push` fails with `Permission denied (publickey)`:
   1) Assume non-interactive shell. Ask the user to run one of:
-     - ssh-add --apple-use-keychain ~/.ssh/id_ed25519
-     - or switch remote to HTTPS: git remote set-url origin https://github.com/<user>/<repo>.git && gh auth setup-git
+     - `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`
+     - or switch to HTTPS push: `git remote set-url --push origin https://github.com/<user>/<repo>.git && gh auth setup-git`
   2) After they confirm, retry `git push -u origin <branch>`.
 - If push still fails, run `git remote -v` and `ssh -T git@github.com` and show the outputs.
