@@ -25,3 +25,9 @@ Hard rules:
      - or switch to HTTPS push: `git remote set-url --push origin https://github.com/<user>/<repo>.git && gh auth setup-git`
   2) After they confirm, retry `git push -u origin <branch>`.
 - If push still fails, run `git remote -v` and `ssh -T git@github.com` and show the outputs.
+
+## Environment rules
+- Never read `process.env` directly. Always import from `@/lib/env`.
+- Public values must start with `NEXT_PUBLIC_` and live under `client` in `src/lib/env.ts`.
+- Server secrets live under `server`. Do not import server-only envs in client components.
+- If env validation fails, fix `.env.local` or Vercel Project Settings → Environment Variables.
