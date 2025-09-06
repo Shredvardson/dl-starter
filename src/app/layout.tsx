@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import '@/styles/tokens.css'
+import { env } from '@/lib/env'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Starter',
+  title: env.NEXT_PUBLIC_APP_NAME,
   description: 'Lightweight, LLM-friendly Next.js starter',
 }
 
