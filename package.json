@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "format": "prettier -w .",
     "test": "vitest",
+    "test:unit": "vitest --run --config vitest.config.ts",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },

@@ -32,5 +32,11 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Tests (non-blocking)
-        run: pnpm test -- --run || true
+      - name: Install Playwright browsers
+        run: pnpm dlx playwright install --with-deps
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: E2E tests
+        run: pnpm test:e2e
