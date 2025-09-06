@@ -5,4 +5,4 @@ run_in_background = true
 
 [hooks.matcher]
 tool_name = "edit_file"
-file_paths = ["app/**/*","components/**/*","lib/**/*","styles/**/*","tests/**/*","__tests__/**/*"]
+file_paths = ["src/app/**/*","src/components/**/*","src/lib/**/*","src/styles/**/*","tests/**/*","__tests__/**/*"]

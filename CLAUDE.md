@@ -9,7 +9,7 @@ Read in this order:
 @docs/llm/CONTRIBUTING_LLMS.md
 @docs/llm/QUALITY_PIPELINE.md
 
-Routing map for code edits:
+Routing map for code edits (src-based):
 @docs/llm/context-map.json
 
 Hard rules:

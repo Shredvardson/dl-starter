@@ -1,12 +1,12 @@
 {
   "version": 1,
   "areas": [
-    { "path": "app/(marketing)", "purpose": "Landing copy & CTA", "allowed": ["docs:update","feature:add (copy/UI only)"], "avoid": ["auth","db","payments"], "tags": ["routes","marketing"] },
-    { "path": "app/(app)", "purpose": "Signed-in area (public for now)", "allowed": ["feature:add","refactor:extract"], "avoid": ["direct vendor SDKs"], "tags": ["routes","app"] },
-    { "path": "components", "purpose": "Token-aware primitives", "allowed": ["feature:add (small)","refactor:extract"], "avoid": ["color hex literals"], "tags": ["ui","tokens"] },
-    { "path": "styles", "purpose": "Design tokens & themes", "allowed": ["feature:add (tokens only)","docs:update"], "avoid": ["framework resets"], "tags": ["tokens","theme"] },
-    { "path": "lib/adapters", "purpose": "Replaceable vendor boundaries", "allowed": ["feature:add (impl only)","refactor:extract"], "avoid": ["leaking vendor types to UI"], "tags": ["adapters","infra"] },
-    { "path": "lib", "purpose": "Env/flags/validate/utils", "allowed": ["feature:add (small)","test:add"], "avoid": ["business logic"], "tags": ["utils","infra"] },
+    { "path": "src/app/(marketing)", "purpose": "Landing copy & CTA", "allowed": ["docs:update","feature:add (copy/UI only)"], "avoid": ["auth","db","payments"], "tags": ["routes","marketing"] },
+    { "path": "src/app/(app)", "purpose": "Signed-in area (public for now)", "allowed": ["feature:add","refactor:extract"], "avoid": ["direct vendor SDKs"], "tags": ["routes","app"] },
+    { "path": "src/components", "purpose": "Token-aware primitives", "allowed": ["feature:add (small)","refactor:extract"], "avoid": ["color hex literals"], "tags": ["ui","tokens"] },
+    { "path": "src/styles", "purpose": "Design tokens & themes", "allowed": ["feature:add (tokens only)","docs:update"], "avoid": ["framework resets"], "tags": ["tokens","theme"] },
+    { "path": "src/lib/adapters", "purpose": "Replaceable vendor boundaries", "allowed": ["feature:add (impl only)","refactor:extract"], "avoid": ["leaking vendor types to UI"], "tags": ["adapters","infra"] },
+    { "path": "src/lib", "purpose": "Env/flags/validate/utils", "allowed": ["feature:add (small)","test:add"], "avoid": ["business logic"], "tags": ["utils","infra"] },
     { "path": "docs/llm", "purpose": "LLM manuals & manifests", "allowed": ["docs:update"], "avoid": [], "tags": ["docs"] }
   ]
 }
