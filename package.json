@@ -11,9 +11,14 @@
     "test": "vitest",
     "test:unit": "vitest --run --config vitest.config.ts",
     "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "debug": "tsx scripts/debug.ts",
+    "debug:sentry": "tsx scripts/debug.ts sentry:check",
+    "debug:env": "tsx scripts/debug.ts env:check",
+    "debug:health": "tsx scripts/debug.ts dev:health"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.10.0",
     "@t3-oss/env-nextjs": "^0.13.8",
     "clsx": "^2.1.1",
     "next": "15.5.2",
@@ -32,11 +37,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.0.2",
+    "commander": "^14.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "typescript": "^5",
     "vitest": "^3.2.4"
   },

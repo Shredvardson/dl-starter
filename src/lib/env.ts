@@ -12,6 +12,11 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
+    // Sentry server-side configuration (optional for now)
+    SENTRY_DSN: z.string().url().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
+
     // Databases / vendors (optional for now; make required per project)
     DATABASE_URL: z.string().url().optional(),
     SUPABASE_URL: z.string().url().optional(),
@@ -22,10 +27,15 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_APP_NAME: z.string().default("DL Starter"),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   },
 
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
 
     DATABASE_URL: process.env.DATABASE_URL,
     SUPABASE_URL: process.env.SUPABASE_URL,
@@ -34,6 +44,7 @@ export const env = createEnv({
 
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
 
   /**
