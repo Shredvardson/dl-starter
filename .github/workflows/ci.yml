@@ -25,7 +25,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: package.json
+          run_install: false
 
       - uses: actions/setup-node@v4
         with:
@@ -54,7 +54,7 @@ jobs:
         run: pnpm turbo run typecheck
 
       - name: Build
-        run: pnpm turbo run build
+        run: pnpm turbo run build --filter=web
 
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps
@@ -66,10 +66,10 @@ jobs:
         run: pnpm test:e2e
 
       - name: Upload build artifacts
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: next-build-${{ matrix.node-version }}
+          name: web-next-build-${{ matrix.node-version }}
           path: apps/web/.next
           retention-days: 3
 
@@ -78,7 +78,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 10 }
+        with:
+          run_install: false
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: 'pnpm' }
       - run: pnpm -w install --frozen-lockfile
@@ -94,7 +95,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: package.json
+          run_install: false
 
       - uses: actions/setup-node@v4
         with:
