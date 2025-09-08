@@ -185,14 +185,17 @@ function checkConstitutionIntegrity(): CheckResult {
   }
 
   try {
-    // Run checksum update and see if it changes
+    // Run checksum update and see if it changes (ignoring timestamp)
     const originalContent = readFileSync(checksumPath, 'utf8');
+    const originalChecksums = JSON.parse(originalContent);
 
     execSync('npx tsx scripts/update-constitution-checksum.ts', { stdio: 'pipe' });
 
     const newContent = readFileSync(checksumPath, 'utf8');
+    const newChecksums = JSON.parse(newContent);
 
-    if (originalContent !== newContent) {
+    // Compare only the checksums, not the timestamp
+    if (JSON.stringify(originalChecksums.checksums) !== JSON.stringify(newChecksums.checksums)) {
       return {
         name: 'Constitution Integrity',
         status: 'fail',
