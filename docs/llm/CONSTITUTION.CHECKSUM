@@ -1,26 +1,16 @@
 {
-  "generated": "2025-09-08T06:42:06.567Z",
+  "generated": "2025-09-08T07:43:56.545Z",
   "version": "0.1.0",
   "checksums": {
-    "CLAUDE.md": "b7dd8fd3ff0da4b1",
+    "CLAUDE.md": "e94d589f2d864888",
     "docs/llm/context-map.json": "d604cc712f868ea3",
     "docs/llm/STARTER_MANIFEST.json": "b476276b42cf1a73",
-    "docs/llm/NEW_APP_KICKOFF.md": "ab0c8787d9f15394",
+    "docs/llm/NEW_APP_KICKOFF.md": "20a046163c10a28f",
     "docs/llm/CONTRIBUTING_LLMS.md": "966a55631280adf7",
     "docs/llm/QUALITY_PIPELINE.md": "d3ad0110268bfb92",
     "packages/config/eslint.config.mjs": "48b32a24131c8e45",
     "packages/config/prettier.config.js": "b45bef94c62531f7",
-    "apps/web/src/styles/tokens.css": "ac04ebda2d6ba5e1",
-    "apps/web/app.config.ts": "e783754f3f23139b",
-    "apps/web/src/app/(marketing)": "missing",
-    "apps/web/src/app/(app)": "missing",
-    "packages/ui": "missing",
-    "apps/web/src/styles": "missing",
-    "apps/web/src/lib/adapters": "missing",
-    "apps/web/src/lib": "missing",
-    "packages/types": "missing",
-    "packages/ai": "missing",
-    "packages/config": "missing",
-    "docs/llm": "missing"
+    "packages/ui/styles/tokens.css": "ac04ebda2d6ba5e1",
+    "apps/web/app.config.ts": "e783754f3f23139b"
   }
 }
