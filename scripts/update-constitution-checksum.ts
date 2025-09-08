@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, statSync } from 'fs';
 import { createHash } from 'crypto';
 import { resolve } from 'path';
 
@@ -15,8 +15,12 @@ interface ContextMap {
   areas: ContextMapArea[];
 }
 
-function hashFile(filePath: string): string {
+function hashFile(filePath: string): string | null {
   try {
+    const stat = statSync(resolve(filePath));
+    if (!stat.isFile()) {
+      return null; // Skip directories
+    }
     const content = readFileSync(filePath, 'utf8');
     return createHash('sha256').update(content).digest('hex').substring(0, 16);
   } catch (error) {
@@ -42,7 +46,7 @@ function main() {
     'docs/llm/QUALITY_PIPELINE.md',
     'packages/config/eslint.config.mjs',
     'packages/config/prettier.config.js',
-    'apps/web/src/styles/tokens.css',
+    'packages/ui/styles/tokens.css',
     'apps/web/app.config.ts'
   ];
 
@@ -53,10 +57,16 @@ function main() {
     }
   });
 
-  // Generate checksums
+  // Generate checksums (files only)
   const checksums: Record<string, string> = {};
+  let fileCount = 0;
+  
   bindingSources.forEach(file => {
-    checksums[file] = hashFile(resolve(file));
+    const hash = hashFile(resolve(file));
+    if (hash !== null) {
+      checksums[file] = hash;
+      fileCount++;
+    }
   });
 
   // Write checksum file
@@ -68,7 +78,7 @@ function main() {
 
   writeFileSync(checksumPath, JSON.stringify(checksumContent, null, 2) + '\n');
   
-  console.log(`✅ Constitution checksum updated: ${Object.keys(checksums).length} files hashed`);
+  console.log(`✅ Constitution checksum updated: ${fileCount} files hashed`);
 }
 
 main();

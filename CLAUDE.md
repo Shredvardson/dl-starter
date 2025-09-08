@@ -35,6 +35,8 @@ Hard rules:
 - Use adapters in `apps/web/src/lib/adapters/*` for vendors (auth/db/ai/analytics/payments/storage/logger).
 - Use shared packages: `@ui/components`, `@shared/types`, `@shared/ai`, `@shared/config`.
 - Use tokenized Tailwind via `hsl(var(--...))` (no hex colors in components).
+- Design tokens live in `packages/ui/styles/tokens.css` (centralized).
+- Sentry is opt-in: only initializes if `SENTRY_DSN` is set (silent otherwise).
 - Keep diffs small and reversible. Plan → Implement → Refactor Secure → PR.
 
 ## Git push rules

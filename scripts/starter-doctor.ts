@@ -272,13 +272,122 @@ function printResults(results: CheckResult[]) {
   }
 }
 
+function checkNewAppImports(): CheckResult[] {
+  const results: CheckResult[] = [];
+  const appsDir = resolve('apps');
+  
+  if (!existsSync(appsDir)) {
+    return results;
+  }
+  
+  const apps = require('fs').readdirSync(appsDir).filter((entry: string) => {
+    const appPath = join(appsDir, entry);
+    return statSync(appPath).isDirectory() && entry !== 'web';
+  });
+  
+  for (const appName of apps) {
+    const globalsCssPath = join(appsDir, appName, 'src/app/globals.css');
+    const nextConfigPath = join(appsDir, appName, 'next.config.ts');
+    const packageJsonPath = join(appsDir, appName, 'package.json');
+    
+    // Check for relative tokens import
+    if (existsSync(globalsCssPath)) {
+      try {
+        const content = readFileSync(globalsCssPath, 'utf8');
+        if (content.includes('../../styles/tokens.css')) {
+          results.push({
+            name: `${appName} Globals Import`,
+            status: 'fail',
+            message: 'Uses relative path to tokens.css instead of package import',
+            fix: `Update ${globalsCssPath} to use: @import '@ui/components/styles/tokens.css';`
+          });
+        }
+      } catch (error) {
+        // Skip files that can't be read
+      }
+    }
+    
+    // Check for turbopack in next.config.ts
+    if (existsSync(nextConfigPath)) {
+      try {
+        const content = readFileSync(nextConfigPath, 'utf8');
+        if (content.includes('turbopack: true')) {
+          results.push({
+            name: `${appName} Next Config`,
+            status: 'fail',
+            message: 'Contains experimental.turbopack which should be removed',
+            fix: `Remove experimental.turbopack from ${nextConfigPath}`
+          });
+        }
+      } catch (error) {
+        // Skip files that can't be read
+      }
+    }
+    
+    // Check if app is in lockfile
+    try {
+      const lockfilePath = resolve('pnpm-lock.yaml');
+      if (existsSync(lockfilePath)) {
+        const lockfileContent = readFileSync(lockfilePath, 'utf8');
+        if (!lockfileContent.includes(`apps/${appName}`)) {
+          results.push({
+            name: `${appName} Lockfile`,
+            status: 'fail',
+            message: 'App not found in pnpm-lock.yaml',
+            fix: 'Run: pnpm i'
+          });
+        }
+      }
+    } catch (error) {
+      // Skip if lockfile can't be read
+    }
+    
+    // Check dependency versions vs apps/web
+    if (existsSync(packageJsonPath)) {
+      try {
+        const appPackageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+        const webPackageJsonPath = resolve('apps/web/package.json');
+        
+        if (existsSync(webPackageJsonPath)) {
+          const webPackageJson = JSON.parse(readFileSync(webPackageJsonPath, 'utf8'));
+          const coreKeys = ['next', 'react', 'react-dom', 'tailwindcss', 'typescript'];
+          const mismatches: string[] = [];
+          
+          for (const key of coreKeys) {
+            const appVersion = appPackageJson.dependencies?.[key] || appPackageJson.devDependencies?.[key];
+            const webVersion = webPackageJson.dependencies?.[key] || webPackageJson.devDependencies?.[key];
+            
+            if (appVersion && webVersion && appVersion !== webVersion) {
+              mismatches.push(`${key}: ${appVersion} vs ${webVersion}`);
+            }
+          }
+          
+          if (mismatches.length > 0) {
+            results.push({
+              name: `${appName} Dependencies`,
+              status: 'warn',
+              message: `Core dependency mismatches: ${mismatches.join(', ')}`,
+              fix: `Consider updating ${packageJsonPath} to match apps/web versions`
+            });
+          }
+        }
+      } catch (error) {
+        // Skip if package.json can't be parsed
+      }
+    }
+  }
+  
+  return results;
+}
+
 function main() {
   const checks: CheckResult[] = [
     checkDependencies(),
     checkPlaceholders(),
     checkPRD(),
     checkEnvironment(),
-    checkConstitutionIntegrity()
+    checkConstitutionIntegrity(),
+    ...checkNewAppImports()
   ];
   
   printResults(checks);

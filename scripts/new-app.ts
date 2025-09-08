@@ -10,6 +10,11 @@ interface AppConfig {
   DEFAULT_LOCALE: string;
 }
 
+interface WebPackageJson {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
+
 function prompt(question: string, defaultValue?: string): string {
   const readline = require('readline').createInterface({
     input: process.stdin,
@@ -39,32 +44,44 @@ function createDirectories(appPath: string) {
 }
 
 function createAppFiles(appPath: string, config: AppConfig) {
+  // Copy dependencies from apps/web
+  const webPackageJsonPath = resolve('apps/web/package.json');
+  let webPackageJson: WebPackageJson = {};
+  
+  if (existsSync(webPackageJsonPath)) {
+    try {
+      webPackageJson = JSON.parse(readFileSync(webPackageJsonPath, 'utf8'));
+    } catch (error) {
+      console.warn('⚠️  Could not read apps/web/package.json, using fallback deps');
+    }
+  }
+
   // package.json
   const packageJson = {
     name: config.APP_SLUG,
     version: "0.1.0",
     private: true,
     scripts: {
-      dev: "next dev --turbopack",
+      dev: "next dev",
       build: "next build",
       start: "next start",
       lint: "next lint --fix",
       typecheck: "tsc --noEmit",
       test: "vitest"
     },
-    dependencies: {
-      next: "15.0.3",
-      react: "19.0.0",
-      "react-dom": "19.0.0"
+    dependencies: webPackageJson.dependencies || {
+      next: "15.5.2",
+      react: "19.1.0",
+      "react-dom": "19.1.0"
     },
-    devDependencies: {
-      "@types/node": "^22",
+    devDependencies: webPackageJson.devDependencies || {
+      "@types/node": "^20",
       "@types/react": "^19",
       "@types/react-dom": "^19",
-      eslint: "^8",
-      "eslint-config-next": "15.0.3",
+      eslint: "^9",
+      "eslint-config-next": "15.5.2",
       typescript: "^5",
-      vitest: "^2.1.5"
+      vitest: "^3.2.4"
     }
   };
   writeFileSync(join(appPath, 'package.json'), JSON.stringify(packageJson, null, 2));
@@ -89,9 +106,7 @@ function createAppFiles(appPath: string, config: AppConfig) {
   const nextConfig = `import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbopack: true,
-  },
+  reactStrictMode: true,
   transpilePackages: ['@ui', '@shared'],
 };
 
@@ -103,8 +118,8 @@ export default nextConfig;`;
 
 const config: Config = {
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-    '../../packages/ui/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{ts,tsx,mdx}',
+    '../../packages/ui/**/*.{ts,tsx,mdx}'
   ],
   theme: {
     extend: {},
@@ -187,7 +202,7 @@ export default function Error({
   writeFileSync(join(appPath, 'src/app/loading.tsx'), loading);
 
   // src/app/globals.css
-  const globalsCss = `@import '../../styles/tokens.css';
+  const globalsCss = `@import '@ui/components/styles/tokens.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;`;
@@ -232,15 +247,17 @@ pnpm dev
 }
 
 async function main() {
+  const useDefaults = process.argv.includes('--yes') || process.argv.includes('-y');
+  
   console.log('🚀 Creating new app in monorepo (portfolio mode)');
   console.log();
 
   const config: AppConfig = {
-    APP_NAME: await prompt('App Name', 'My App'),
+    APP_NAME: useDefaults ? 'My App' : await prompt('App Name', 'My App'),
     APP_SLUG: '',
-    PRIMARY_DOMAIN: await prompt('Primary Domain', 'localhost:3000'),
-    COMPANY_NAME: await prompt('Company Name', 'Your Company'),
-    DEFAULT_LOCALE: await prompt('Default Locale', 'en-US')
+    PRIMARY_DOMAIN: useDefaults ? 'localhost:3000' : await prompt('Primary Domain', 'localhost:3000'),
+    COMPANY_NAME: useDefaults ? 'Your Company' : await prompt('Company Name', 'Your Company'),
+    DEFAULT_LOCALE: useDefaults ? 'en-US' : await prompt('Default Locale', 'en-US')
   };
 
   config.APP_SLUG = config.APP_NAME
@@ -263,9 +280,14 @@ async function main() {
   createDirectories(appPath);
   createAppFiles(appPath, config);
 
+  // Install dependencies
+  console.log('📦 Installing dependencies...');
+  execSync('pnpm i', { stdio: 'inherit' });
+  execSync(`pnpm -F ${config.APP_SLUG} i`, { stdio: 'inherit' });
+
   // Update constitution checksum
-  console.log('Updating constitution checksum...');
-  execSync('npx tsx scripts/update-constitution-checksum.ts', { stdio: 'inherit' });
+  console.log('🔐 Updating constitution checksum...');
+  execSync('pnpm tsx scripts/update-constitution-checksum.ts', { stdio: 'inherit' });
 
   // Create git branch and initial commit  
   const branchName = `feat/${config.APP_SLUG}-scaffold`;
@@ -286,10 +308,13 @@ async function main() {
     console.log('✅ App created successfully!');
     console.log();
     console.log('Next steps:');
-    console.log(`1. pnpm turbo run dev --filter=${config.APP_SLUG}`);
-    console.log(`2. Fill docs/product/PRD.md with MVP scope`);
-    console.log(`3. pnpm tsx scripts/starter-doctor.ts`);
-    console.log(`4. Plan → Scaffold Tests → Implement → Prepare PR`);
+    console.log(`1) pnpm turbo run dev --filter=${config.APP_SLUG}`);
+    console.log(`2) pnpm doctor`);
+    console.log();
+    console.log('📋 Additional setup:');
+    console.log(`• Fill docs/product/PRD.md with MVP scope`);
+    console.log(`• Plan → Scaffold Tests → Implement → Prepare PR`);
+    console.log(`• Set SENTRY_DSN to enable error tracking (optional)`);
     
   } catch (error) {
     console.warn('⚠️  Git operations failed, but app was created successfully');

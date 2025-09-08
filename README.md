@@ -22,7 +22,7 @@ Lightweight, LLM-friendly Next.js starter template with Turborepo.
 
 ## Structure
 - `apps/web/` - Next.js application
-- `packages/ui/` - Shared UI components
+- `packages/ui/` - Shared UI components + design tokens
 - `packages/types/` - Shared TypeScript types  
 - `packages/ai/` - AI utilities and prompts
 - `packages/config/` - Shared ESLint/Prettier/TypeScript configs
@@ -35,8 +35,14 @@ Lightweight, LLM-friendly Next.js starter template with Turborepo.
 
 ## Customize
 - `apps/web/src/app/(marketing)/page.tsx` (copy)  
-- `apps/web/src/styles/tokens.css` (brand hue / tokens)  
+- `packages/ui/styles/tokens.css` (brand hue / tokens)  
 - `app.config.ts` (feature toggles: billing/orgs/ai)  
+
+## Optional Integrations
+- **Sentry**: Set `SENTRY_DSN` to enable error tracking (silent if not set)
+- **Auth**: See `docs/recipes/auth.md`
+- **Database**: See `docs/recipes/db.md`
+- **Payments**: See `docs/recipes/stripe.md`  
 
 ## Scripts
 `pnpm turbo run dev --filter=web` / `pnpm turbo run build` / `pnpm turbo run typecheck` / `pnpm turbo run test`

@@ -51,7 +51,7 @@
 
 **Update** title/description in `app/layout.tsx` and `README.md`.
 
-**Theme**: set brand hue in `styles/tokens.css` (or add `styles/themes/<slug>.css` and import in layout).
+**Theme**: set brand hue in `packages/ui/styles/tokens.css` (centralized design tokens).
 
 **Routes**: keep `(marketing)` and `(app)` folders; change copy only.
 
