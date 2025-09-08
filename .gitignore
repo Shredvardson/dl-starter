@@ -103,3 +103,4 @@ storybook-static/
 # MCP specific
 .playwright-mcp/
 *.mcp.log
+.turbo/

@@ -26,17 +26,74 @@ jobs:
       - name: Install
         run: pnpm i --frozen-lockfile
 
+      - name: Lint
+        run: pnpm turbo run lint
+
       - name: Typecheck
-        run: pnpm exec tsc --noEmit
+        run: pnpm turbo run typecheck
 
       - name: Build
-        run: pnpm build
+        run: pnpm turbo run build
 
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps
 
       - name: Unit tests
-        run: pnpm test:unit
+        run: pnpm turbo run test:unit
 
       - name: E2E tests
         run: pnpm test:e2e
+
+      - name: Starter Doctor
+        run: npx tsx scripts/starter-doctor.ts
+
+  constitution-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm i --frozen-lockfile
+
+      - name: Constitution Checksum Guard
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed files: $CHANGED_FILES"
+          
+          # Check if any binding source files changed
+          BINDING_SOURCES_CHANGED=false
+          
+          # Key binding sources to watch
+          BINDING_FILES="CLAUDE.md docs/llm/context-map.json docs/llm/STARTER_MANIFEST.json docs/llm/NEW_APP_KICKOFF.md docs/llm/CONTRIBUTING_LLMS.md docs/llm/QUALITY_PIPELINE.md packages/config/eslint.config.mjs packages/config/prettier.config.js apps/web/src/styles/tokens.css apps/web/app.config.ts"
+          
+          for file in $BINDING_FILES; do
+            if echo "$CHANGED_FILES" | grep -q "$file"; then
+              echo "Binding source changed: $file"
+              BINDING_SOURCES_CHANGED=true
+              break
+            fi
+          done
+          
+          if [ "$BINDING_SOURCES_CHANGED" = true ]; then
+            if ! echo "$CHANGED_FILES" | grep -q "docs/llm/CONSTITUTION.CHECKSUM"; then
+              echo "❌ Binding sources changed but CONSTITUTION.CHECKSUM not updated"
+              echo "💡 Run: pnpm tsx scripts/update-constitution-checksum.ts"
+              exit 1
+            else
+              echo "✅ Constitution checksum updated with binding source changes"
+            fi
+          else
+            echo "✅ No binding source changes detected"
+          fi

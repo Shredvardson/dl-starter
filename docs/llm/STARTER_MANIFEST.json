@@ -5,6 +5,9 @@
   "defaults": {
     "app_name": "Your App",
     "app_slug": "your-app",
+    "primary_domain": "localhost:3000",
+    "company_name": "Your Company", 
+    "default_locale": "en-US",
     "homepage_route": "/",
     "signed_in_route": "/dashboard",
     "brand": { "hue": 222 },

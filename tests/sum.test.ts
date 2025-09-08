@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sum } from '../src/lib/sum';
+import { sum } from '../apps/web/src/lib/sum';
 
 describe('sum', () => {
   it('adds positive numbers', () => {

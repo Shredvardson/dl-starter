@@ -1,26 +1,45 @@
-# dl-starter
+# dl-starter (Monorepo)
 
-Lightweight, LLM-friendly Next.js starter.
+Lightweight, LLM-friendly Next.js starter template with Turborepo.
 
-## Quickstart
-1. **Use as template** (GitHub → Use this template) or via CLI:
-   ```bash
-   gh repo create <new-repo-name> --template Shredvardson/dl-starter --public --clone
-   cd <new-repo-name>
-   pnpm i
-   pnpm dev
-   ```
-2. **Docs for LLMs**
-   - `CLAUDE.md` (index + rules)  
-   - `docs/llm/context-map.json` (src/ routing map)  
-   - `docs/llm/STARTER_MANIFEST.json` (what to customize per app)  
-3. **Customize**
-   - `src/app/(marketing)/page.tsx` (copy)  
-   - `src/styles/tokens.css` (brand hue / tokens)  
-   - `app.config.ts` (feature toggles: billing/orgs/ai)  
+## New App from Template (choose mode):
+
+**Monorepo (portfolio)** – new app inside this repo
+1) `pnpm i`
+2) `pnpm tsx scripts/new-app.ts`
+3) Fill `docs/product/PRD.md` MVP scope (acceptance + anti-goals)
+4) `pnpm tsx scripts/starter-doctor.ts`
+5) `pnpm turbo run dev --filter=<APP_SLUG>`
+6) Plan → Scaffold Tests → Implement → Prepare PR (see `/prompts/tasks`)
+
+**Export (new product repo)**
+1) `pnpm i`  
+2) `pnpm tsx scripts/new-repo-from-template.ts`
+3) `cd ../<APP_SLUG> && pnpm i`
+4) Fill `docs/product/PRD.md` MVP scope
+5) `pnpm tsx scripts/starter-doctor.ts`
+6) `pnpm dev`
+
+## Structure
+- `apps/web/` - Next.js application
+- `packages/ui/` - Shared UI components
+- `packages/types/` - Shared TypeScript types  
+- `packages/ai/` - AI utilities and prompts
+- `packages/config/` - Shared ESLint/Prettier/TypeScript configs
+
+## Docs for LLMs
+- `CLAUDE.md` (index + rules)  
+- `docs/llm/context-map.json` (monorepo routing map)  
+- `docs/llm/STARTER_MANIFEST.json` (what to customize per app)
+- `docs/llm/DESIGN_CONSTITUTION.md` (architecture binding rules)  
+
+## Customize
+- `apps/web/src/app/(marketing)/page.tsx` (copy)  
+- `apps/web/src/styles/tokens.css` (brand hue / tokens)  
+- `app.config.ts` (feature toggles: billing/orgs/ai)  
 
 ## Scripts
-`pnpm dev` / `pnpm build` / `pnpm typecheck` / `pnpm test -- --run`
+`pnpm turbo run dev --filter=web` / `pnpm turbo run build` / `pnpm turbo run typecheck` / `pnpm turbo run test`
 
 ## Node & pnpm
 Node 22 (see `.nvmrc` / `.node-version`). pnpm version is managed by `packageManager` in `package.json`.

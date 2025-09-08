@@ -14,7 +14,7 @@ export interface MonitoringAdapter {
   captureMessage: (message: string, context?: ErrorContext) => void;
   setUser: (user: { id: string; email?: string }) => void;
   addBreadcrumb: (message: string, category?: string, level?: string) => void;
-  startTransaction: (name: string, op?: string) => any;
+  startTransaction: (name: string, op?: string) => { finish: () => void };
 }
 
 class SentryAdapter implements MonitoringAdapter {
@@ -52,13 +52,13 @@ class SentryAdapter implements MonitoringAdapter {
     Sentry.addBreadcrumb({
       message,
       category,
-      level: level as any,
+      level: level as "fatal" | "error" | "warning" | "log" | "info" | "debug",
       timestamp: Date.now() / 1000,
     });
   }
 
   startTransaction(name: string, op = "navigation") {
-    return Sentry.startSpan({ name, op }, () => {});
+    return { finish: () => Sentry.startSpan({ name, op }, () => {}) };
   }
 }
 
