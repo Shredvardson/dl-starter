@@ -47,7 +47,16 @@ jobs:
       - name: E2E tests
         run: pnpm test:e2e
 
-      - name: Starter Doctor
+  doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+      - run: pnpm -w install --frozen-lockfile
+      - name: Run Starter Doctor
         run: npx tsx scripts/starter-doctor.ts
 
   constitution-guard:
