@@ -44,7 +44,7 @@ jobs:
 
       - name: Preflight (placeholders & env.example)
         run: |
-          # Build the token string without ever writing {{PLACEHOLDER}} to the repo
+          # Build the token string dynamically to avoid committing the exact placeholder sequence
           PATTERN="{{"; PATTERN+="PLACEHOLDER"; PATTERN+="}}"
           MATCHES=$(grep -R "$PATTERN" -n --exclude-dir=node_modules --exclude-dir=.turbo -- . || true)
           if [ -n "$MATCHES" ]; then
