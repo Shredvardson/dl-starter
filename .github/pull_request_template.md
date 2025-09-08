@@ -1,14 +1,9 @@
-## Summary
+Spec-ID: <e.g. 001>
 
-## Scope
-- [ ] Single task type (feature/refactor/test/docs)
-- [ ] Only touched files listed in docs/llm/context-map.json
+**Checklist**
 
-## Safety
-- [ ] pnpm exec tsc --noEmit
-- [ ] pnpm build
-- [ ] pnpm test -- --run (if tests exist)
-
-## LLM Guardrails
-- [ ] Used adapters (no vendor SDKs in UI)
-- [ ] No hardcoded hex colors (tokenized Tailwind only)
+- [ ] Spec exists at `/specs/<id>-<slug>/spec.md` and stays ≤900 words
+- [ ] Acceptance tests added or updated
+- [ ] Security & errors considered (auth, validation, empty/error states)
+- [ ] Any migrations tested locally
+- [ ] Screenshots or brief demo if UI changed

@@ -3,6 +3,17 @@ on:
   push: { branches: [main] }
   pull_request:
 jobs:
+  spec-gate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run spec gate
+        run: bash scripts/ci/spec_gate.sh
+
   ci:
     runs-on: ubuntu-latest
     steps:

@@ -22,20 +22,20 @@ Build a Next.js 15.5.2 application with App Router, TypeScript, and Tailwind CSS
 
 ```typescript
 interface ComponentProps {
-  className?: string
-  children?: React.ReactNode
+  className?: string;
+  children?: React.ReactNode;
 }
 
 interface ApiResponse<T> {
-  data: T
-  error?: string
-  status: 'success' | 'error'
+  data: T;
+  error?: string;
+  status: 'success' | 'error';
 }
 
 interface TestScenario {
-  description: string
-  input: unknown
-  expected: unknown
+  description: string;
+  input: unknown;
+  expected: unknown;
 }
 ```
 

@@ -1,0 +1,14 @@
+
+> web@0.1.0 test:unit /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/apps/web
+> vitest --run --config vitest.config.ts
+
+
+ RUN  v3.2.4 /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/apps/web
+
+ ✓ ../../tests/sum.test.ts (3 tests) 1ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  15:42:02
+   Duration  178ms (transform 32ms, setup 0ms, collect 14ms, tests 1ms, environment 0ms, prepare 46ms)
+

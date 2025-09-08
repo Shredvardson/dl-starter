@@ -3,6 +3,7 @@
 **Goal:** Prepare this starter for a _new app_ using small, reversible diffs.
 
 ## 0) Inputs (JSON example)
+
 ```json
 {
   "app_name": "ADHD Storyteller",
@@ -13,14 +14,15 @@
 ```
 
 ## 1) Plan (return this JSON before code changes)
+
 ```json
 {
   "changes": [
-    {"path":"app/layout.tsx","reason":"metadata & theme import"},
-    {"path":"styles/tokens.css","reason":"brand hue override"},
-    {"path":"README.md","reason":"rename project"},
-    {"path":"app.config.ts","reason":"feature toggles"},
-    {"path":"app/(marketing)/page.tsx","reason":"update landing copy"}
+    { "path": "app/layout.tsx", "reason": "metadata & theme import" },
+    { "path": "styles/tokens.css", "reason": "brand hue override" },
+    { "path": "README.md", "reason": "rename project" },
+    { "path": "app.config.ts", "reason": "feature toggles" },
+    { "path": "app/(marketing)/page.tsx", "reason": "update landing copy" }
   ],
   "skipped": [],
   "risks": ["do not remove adapters", "keep routing zones intact"]

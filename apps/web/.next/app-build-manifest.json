@@ -1,0 +1,50 @@
+{
+  "pages": {
+    "/(app)/dashboard/page": [
+      "static/chunks/ae458719ca207481.js",
+      "static/chunks/9d0bd79e749b2145.css",
+      "static/chunks/edbdbea1740e9c94.js",
+      "static/chunks/4f237989ecae50df.js",
+      "static/chunks/612548dc3eaeccd1.js",
+      "static/chunks/55d805ecb2915eb4.js",
+      "static/chunks/turbopack-96a46f394b83fbe3.js"
+    ],
+    "/(app)/test-monitoring/page": [
+      "static/chunks/ae458719ca207481.js",
+      "static/chunks/9d0bd79e749b2145.css",
+      "static/chunks/edbdbea1740e9c94.js",
+      "static/chunks/326e5ff9d7300c71.js",
+      "static/chunks/4f237989ecae50df.js",
+      "static/chunks/612548dc3eaeccd1.js",
+      "static/chunks/55d805ecb2915eb4.js",
+      "static/chunks/turbopack-96a46f394b83fbe3.js"
+    ],
+    "/(marketing)/page": [
+      "static/chunks/ae458719ca207481.js",
+      "static/chunks/9d0bd79e749b2145.css",
+      "static/chunks/edbdbea1740e9c94.js",
+      "static/chunks/4f237989ecae50df.js",
+      "static/chunks/612548dc3eaeccd1.js",
+      "static/chunks/55d805ecb2915eb4.js",
+      "static/chunks/turbopack-96a46f394b83fbe3.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/ae458719ca207481.js",
+      "static/chunks/9d0bd79e749b2145.css",
+      "static/chunks/edbdbea1740e9c94.js",
+      "static/chunks/4f237989ecae50df.js",
+      "static/chunks/612548dc3eaeccd1.js",
+      "static/chunks/55d805ecb2915eb4.js",
+      "static/chunks/turbopack-96a46f394b83fbe3.js"
+    ],
+    "/page": [
+      "static/chunks/ae458719ca207481.js",
+      "static/chunks/9d0bd79e749b2145.css",
+      "static/chunks/edbdbea1740e9c94.js",
+      "static/chunks/4f237989ecae50df.js",
+      "static/chunks/612548dc3eaeccd1.js",
+      "static/chunks/55d805ecb2915eb4.js",
+      "static/chunks/turbopack-96a46f394b83fbe3.js"
+    ]
+  }
+}

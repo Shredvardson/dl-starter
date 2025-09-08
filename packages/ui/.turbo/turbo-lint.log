@@ -1,0 +1,6 @@
+
+> @ui/components@0.1.0 lint /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/ui
+> eslint .
+
+sh: eslint: command not found
+ ELIFECYCLE  Command failed.

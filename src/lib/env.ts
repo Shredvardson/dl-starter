@@ -1,6 +1,6 @@
 // src/lib/env.ts
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
 
 /**
  * IMPORTANT:
@@ -10,7 +10,7 @@ import { z } from "zod";
  */
 export const env = createEnv({
   server: {
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
     // Databases / vendors (optional for now; make required per project)
     DATABASE_URL: z.string().url().optional(),
@@ -20,7 +20,7 @@ export const env = createEnv({
   },
 
   client: {
-    NEXT_PUBLIC_APP_NAME: z.string().default("DL Starter"),
+    NEXT_PUBLIC_APP_NAME: z.string().default('DL Starter'),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   },
 

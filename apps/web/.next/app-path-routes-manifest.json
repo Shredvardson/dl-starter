@@ -1,0 +1,9 @@
+{
+  "/(app)/dashboard/page": "/dashboard",
+  "/(app)/test-monitoring/page": "/test-monitoring",
+  "/(marketing)/page": "/",
+  "/_not-found/page": "/_not-found",
+  "/api/health/route": "/api/health",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/"
+}

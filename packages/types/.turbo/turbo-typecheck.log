@@ -1,0 +1,5 @@
+
+
+> @shared/types@0.1.0 typecheck /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/types
+> tsc --noEmit
+

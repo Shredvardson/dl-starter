@@ -1,0 +1,14 @@
+
+> @shared/config@0.1.0 lint /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/config
+> eslint .
+
+Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.
+Pages directory cannot be found at /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/config/pages or /Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/config/src/pages. If using a custom path, please configure with the `no-html-link-for-pages` rule in your eslint config file.
+
+/Users/jonte/Dropbox/- Dissonance Labs/dl-starter-new/packages/config/index.js
+  2:17  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:19  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 2 problems (2 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
