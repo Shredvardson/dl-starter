@@ -1,11 +1,11 @@
 // src/lib/adapters/sentry.ts
-import * as Sentry from "@sentry/nextjs";
-import { env } from "@/lib/env";
+import * as Sentry from '@sentry/nextjs';
+import { env } from '@/lib/env';
 
 export interface ErrorContext {
   user?: { id: string; email?: string };
   tags?: Record<string, string | number | boolean>;
-  level?: "error" | "warning" | "info" | "debug";
+  level?: 'error' | 'warning' | 'info' | 'debug';
   extra?: Record<string, unknown>;
 }
 
@@ -24,8 +24,8 @@ class SentryAdapter implements MonitoringAdapter {
       if (context?.tags) scope.setTags(context.tags);
       if (context?.level) scope.setLevel(context.level);
       if (context?.extra) scope.setExtras(context.extra);
-      
-      if (typeof error === "string") {
+
+      if (typeof error === 'string') {
         Sentry.captureException(new Error(error));
       } else {
         Sentry.captureException(error);
@@ -39,8 +39,8 @@ class SentryAdapter implements MonitoringAdapter {
       if (context?.tags) scope.setTags(context.tags);
       if (context?.level) scope.setLevel(context.level);
       if (context?.extra) scope.setExtras(context.extra);
-      
-      Sentry.captureMessage(message, context?.level || "info");
+
+      Sentry.captureMessage(message, context?.level || 'info');
     });
   }
 
@@ -48,16 +48,16 @@ class SentryAdapter implements MonitoringAdapter {
     Sentry.setUser(user);
   }
 
-  addBreadcrumb(message: string, category = "custom", level = "info") {
+  addBreadcrumb(message: string, category = 'custom', level = 'info') {
     Sentry.addBreadcrumb({
       message,
       category,
-      level: level as "fatal" | "error" | "warning" | "log" | "info" | "debug",
+      level: level as 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug',
       timestamp: Date.now() / 1000,
     });
   }
 
-  startTransaction(name: string, op = "navigation") {
+  startTransaction(name: string, op = 'navigation') {
     return { finish: () => Sentry.startSpan({ name, op }, () => {}) };
   }
 }
@@ -73,7 +73,5 @@ class NoOpAdapter implements MonitoringAdapter {
   }
 }
 
-export const monitoring: MonitoringAdapter = 
-  (env.SENTRY_DSN || env.NEXT_PUBLIC_SENTRY_DSN)
-    ? new SentryAdapter()
-    : new NoOpAdapter();
+export const monitoring: MonitoringAdapter =
+  env.SENTRY_DSN || env.NEXT_PUBLIC_SENTRY_DSN ? new SentryAdapter() : new NoOpAdapter();

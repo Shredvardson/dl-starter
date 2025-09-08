@@ -18,9 +18,9 @@ interface WebPackageJson {
 function prompt(question: string, defaultValue?: string): string {
   const readline = require('readline').createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
-  
+
   return new Promise((resolve) => {
     const suffix = defaultValue ? ` (${defaultValue})` : '';
     readline.question(`${question}${suffix}: `, (answer: string) => {
@@ -31,14 +31,9 @@ function prompt(question: string, defaultValue?: string): string {
 }
 
 function createDirectories(appPath: string) {
-  const dirs = [
-    'src/app',
-    'src/app/api/health', 
-    'public',
-    'docs'
-  ];
-  
-  dirs.forEach(dir => {
+  const dirs = ['src/app', 'src/app/api/health', 'public', 'docs'];
+
+  dirs.forEach((dir) => {
     mkdirSync(join(appPath, dir), { recursive: true });
   });
 }
@@ -47,7 +42,7 @@ function createAppFiles(appPath: string, config: AppConfig) {
   // Copy dependencies from apps/web
   const webPackageJsonPath = resolve('apps/web/package.json');
   let webPackageJson: WebPackageJson = {};
-  
+
   if (existsSync(webPackageJsonPath)) {
     try {
       webPackageJson = JSON.parse(readFileSync(webPackageJsonPath, 'utf8'));
@@ -59,46 +54,46 @@ function createAppFiles(appPath: string, config: AppConfig) {
   // package.json
   const packageJson = {
     name: config.APP_SLUG,
-    version: "0.1.0",
+    version: '0.1.0',
     private: true,
     scripts: {
-      dev: "next dev",
-      build: "next build",
-      start: "next start",
-      lint: "next lint --fix",
-      typecheck: "tsc --noEmit",
-      test: "vitest"
+      dev: 'next dev',
+      build: 'next build',
+      start: 'next start',
+      lint: 'next lint --fix',
+      typecheck: 'tsc --noEmit',
+      test: 'vitest',
     },
     dependencies: webPackageJson.dependencies || {
-      next: "15.5.2",
-      react: "19.1.0",
-      "react-dom": "19.1.0"
+      next: '15.5.2',
+      react: '19.1.0',
+      'react-dom': '19.1.0',
     },
     devDependencies: webPackageJson.devDependencies || {
-      "@types/node": "^20",
-      "@types/react": "^19",
-      "@types/react-dom": "^19",
-      eslint: "^9",
-      "eslint-config-next": "15.5.2",
-      typescript: "^5",
-      vitest: "^3.2.4"
-    }
+      '@types/node': '^20',
+      '@types/react': '^19',
+      '@types/react-dom': '^19',
+      eslint: '^9',
+      'eslint-config-next': '15.5.2',
+      typescript: '^5',
+      vitest: '^3.2.4',
+    },
   };
   writeFileSync(join(appPath, 'package.json'), JSON.stringify(packageJson, null, 2));
 
   // tsconfig.json
   const tsconfig = {
-    extends: "../../packages/config/tsconfig.json",
+    extends: '../../packages/config/tsconfig.json',
     compilerOptions: {
-      baseUrl: ".",
+      baseUrl: '.',
       paths: {
-        "@/*": ["./src/*"],
-        "@ui/*": ["../../packages/ui/*"],
-        "@shared/*": ["../../packages/*"]
-      }
+        '@/*': ['./src/*'],
+        '@ui/*': ['../../packages/ui/*'],
+        '@shared/*': ['../../packages/*'],
+      },
     },
-    include: ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-    exclude: ["node_modules"]
+    include: ['next-env.d.ts', '**/*.ts', '**/*.tsx'],
+    exclude: ['node_modules'],
   };
   writeFileSync(join(appPath, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
 
@@ -248,25 +243,26 @@ pnpm dev
 
 async function main() {
   const useDefaults = process.argv.includes('--yes') || process.argv.includes('-y');
-  
+
   console.log('🚀 Creating new app in monorepo (portfolio mode)');
   console.log();
 
   const config: AppConfig = {
     APP_NAME: useDefaults ? 'My App' : await prompt('App Name', 'My App'),
     APP_SLUG: '',
-    PRIMARY_DOMAIN: useDefaults ? 'localhost:3000' : await prompt('Primary Domain', 'localhost:3000'),
+    PRIMARY_DOMAIN: useDefaults
+      ? 'localhost:3000'
+      : await prompt('Primary Domain', 'localhost:3000'),
     COMPANY_NAME: useDefaults ? 'Your Company' : await prompt('Company Name', 'Your Company'),
-    DEFAULT_LOCALE: useDefaults ? 'en-US' : await prompt('Default Locale', 'en-US')
+    DEFAULT_LOCALE: useDefaults ? 'en-US' : await prompt('Default Locale', 'en-US'),
   };
 
-  config.APP_SLUG = config.APP_NAME
-    .toLowerCase()
+  config.APP_SLUG = config.APP_NAME.toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
   const appPath = resolve(`apps/${config.APP_SLUG}`);
-  
+
   if (existsSync(appPath)) {
     console.error(`❌ App directory already exists: ${appPath}`);
     process.exit(1);
@@ -289,12 +285,13 @@ async function main() {
   console.log('🔐 Updating constitution checksum...');
   execSync('pnpm tsx scripts/update-constitution-checksum.ts', { stdio: 'inherit' });
 
-  // Create git branch and initial commit  
+  // Create git branch and initial commit
   const branchName = `feat/${config.APP_SLUG}-scaffold`;
   try {
     execSync(`git checkout -b ${branchName}`, { stdio: 'inherit' });
     execSync(`git add .`, { stdio: 'inherit' });
-    execSync(`git commit -m "feat: scaffold ${config.APP_NAME} app
+    execSync(
+      `git commit -m "feat: scaffold ${config.APP_NAME} app
 
 ✨ Created apps/${config.APP_SLUG} with:
 - Next.js 15 + React 19
@@ -302,7 +299,9 @@ async function main() {
 - Health API endpoint
 - Turbo integration
 
-🤖 Generated with Claude Code"`, { stdio: 'inherit' });
+🤖 Generated with Claude Code"`,
+      { stdio: 'inherit' }
+    );
 
     console.log();
     console.log('✅ App created successfully!');
@@ -315,7 +314,6 @@ async function main() {
     console.log(`• Fill docs/product/PRD.md with MVP scope`);
     console.log(`• Plan → Scaffold Tests → Implement → Prepare PR`);
     console.log(`• Set SENTRY_DSN to enable error tracking (optional)`);
-    
   } catch (error) {
     console.warn('⚠️  Git operations failed, but app was created successfully');
     console.log('Manually commit when ready:');

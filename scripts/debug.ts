@@ -5,10 +5,7 @@ import { Command } from 'commander';
 
 const program = new Command();
 
-program
-  .name('debug')
-  .description('Debugging utilities for the DL Starter')
-  .version('1.0.0');
+program.name('debug').description('Debugging utilities for the DL Starter').version('1.0.0');
 
 // Sentry commands
 program
@@ -49,19 +46,21 @@ program
   .action(() => {
     console.log('🌍 Environment Configuration:');
     console.log('='.repeat(40));
-    
+
     // Check essential env vars
     const checks = [
       'NODE_ENV',
       'NEXT_PUBLIC_APP_NAME',
       'NEXT_PUBLIC_SENTRY_DSN',
       'SENTRY_ORG',
-      'SENTRY_PROJECT'
+      'SENTRY_PROJECT',
     ];
-    
-    checks.forEach(key => {
+
+    checks.forEach((key) => {
       const value = process.env[key];
-      console.log(`${key}: ${value ? '✅' : '❌'} ${value ? `(${value.substring(0, 20)}...)` : 'Not set'}`);
+      console.log(
+        `${key}: ${value ? '✅' : '❌'} ${value ? `(${value.substring(0, 20)}...)` : 'Not set'}`
+      );
     });
   });
 
@@ -72,10 +71,10 @@ program
   .action(() => {
     console.log('🏥 Development Health Check:');
     console.log('='.repeat(40));
-    
+
     // Check Node version
     console.log(`Node.js: ${process.version}`);
-    
+
     // Check package manager
     try {
       const { execSync } = require('child_process');
@@ -84,7 +83,7 @@ program
     } catch {
       console.log('pnpm: ❌ Not found');
     }
-    
+
     // Check essential files
     const fs = require('fs');
     const essentialFiles = [
@@ -93,11 +92,11 @@ program
       'src/lib/env.ts',
       'src/lib/adapters/sentry.ts',
       'sentry.client.config.ts',
-      'sentry.server.config.ts'
+      'sentry.server.config.ts',
     ];
-    
+
     console.log('\nEssential Files:');
-    essentialFiles.forEach(file => {
+    essentialFiles.forEach((file) => {
       console.log(`${file}: ${fs.existsSync(file) ? '✅' : '❌'}`);
     });
   });

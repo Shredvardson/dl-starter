@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Example shared schema
 export const ApiResponseSchema = z.object({
@@ -13,7 +13,7 @@ export type ApiResponse<T = unknown> = z.infer<typeof ApiResponseSchema> & {
 
 // Health check schema
 export const HealthCheckSchema = z.object({
-  status: z.literal("ok"),
+  status: z.literal('ok'),
   timestamp: z.string(),
 });
 

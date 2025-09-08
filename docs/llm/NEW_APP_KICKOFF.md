@@ -5,24 +5,27 @@
 ## New App from Template (choose mode):
 
 **Monorepo (portfolio)** – new app inside this repo
-1) `pnpm i`
-2) `pnpm tsx scripts/new-app.ts`
-3) Fill `docs/product/PRD.md` MVP scope (acceptance + anti-goals)
-4) `pnpm tsx scripts/starter-doctor.ts`
-5) `pnpm turbo run dev --filter=<APP_SLUG>`
-6) Plan → Scaffold Tests → Implement → Prepare PR (see `/prompts/tasks`)
+
+1. `pnpm i`
+2. `pnpm tsx scripts/new-app.ts`
+3. Fill `docs/product/PRD.md` MVP scope (acceptance + anti-goals)
+4. `pnpm tsx scripts/starter-doctor.ts`
+5. `pnpm turbo run dev --filter=<APP_SLUG>`
+6. Plan → Scaffold Tests → Implement → Prepare PR (see `/prompts/tasks`)
 
 **Export (new product repo)**
-1) `pnpm i`  
-2) `pnpm tsx scripts/new-repo-from-template.ts`
-3) `cd ../<APP_SLUG> && pnpm i`
-4) Fill `docs/product/PRD.md` MVP scope
-5) `pnpm tsx scripts/starter-doctor.ts`
-6) `pnpm dev`
+
+1. `pnpm i`
+2. `pnpm tsx scripts/new-repo-from-template.ts`
+3. `cd ../<APP_SLUG> && pnpm i`
+4. Fill `docs/product/PRD.md` MVP scope
+5. `pnpm tsx scripts/starter-doctor.ts`
+6. `pnpm dev`
 
 ---
 
 ## 0) Inputs (JSON example)
+
 ```json
 {
   "app_name": "ADHD Storyteller",
@@ -33,14 +36,15 @@
 ```
 
 ## 1) Plan (return this JSON before code changes)
+
 ```json
 {
   "changes": [
-    {"path":"app/layout.tsx","reason":"metadata & theme import"},
-    {"path":"styles/tokens.css","reason":"brand hue override"},
-    {"path":"README.md","reason":"rename project"},
-    {"path":"app.config.ts","reason":"feature toggles"},
-    {"path":"app/(marketing)/page.tsx","reason":"update landing copy"}
+    { "path": "app/layout.tsx", "reason": "metadata & theme import" },
+    { "path": "styles/tokens.css", "reason": "brand hue override" },
+    { "path": "README.md", "reason": "rename project" },
+    { "path": "app.config.ts", "reason": "feature toggles" },
+    { "path": "app/(marketing)/page.tsx", "reason": "update landing copy" }
   ],
   "skipped": [],
   "risks": ["do not remove adapters", "keep routing zones intact"]

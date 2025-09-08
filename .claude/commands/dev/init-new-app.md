@@ -15,5 +15,5 @@
 ## Output:
 
 - The Plan JSON
-- Unified diffs for applied changes  
+- Unified diffs for applied changes
 - A short checklist the human can verify

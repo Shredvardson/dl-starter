@@ -35,7 +35,7 @@ function main() {
 
   // Read context map to get binding source files
   const contextMap: ContextMap = JSON.parse(readFileSync(contextMapPath, 'utf8'));
-  
+
   // Additional binding sources not in context-map
   const bindingSources = [
     'CLAUDE.md',
@@ -47,11 +47,11 @@ function main() {
     'packages/config/eslint.config.mjs',
     'packages/config/prettier.config.js',
     'packages/ui/styles/tokens.css',
-    'apps/web/app.config.ts'
+    'apps/web/app.config.ts',
   ];
 
   // Add paths from context-map areas
-  contextMap.areas.forEach(area => {
+  contextMap.areas.forEach((area) => {
     if (!bindingSources.includes(area.path)) {
       bindingSources.push(area.path);
     }
@@ -60,8 +60,8 @@ function main() {
   // Generate checksums (files only)
   const checksums: Record<string, string> = {};
   let fileCount = 0;
-  
-  bindingSources.forEach(file => {
+
+  bindingSources.forEach((file) => {
     const hash = hashFile(resolve(file));
     if (hash !== null) {
       checksums[file] = hash;
@@ -73,11 +73,11 @@ function main() {
   const checksumContent = {
     generated: new Date().toISOString(),
     version: '0.1.0',
-    checksums
+    checksums,
   };
 
   writeFileSync(checksumPath, JSON.stringify(checksumContent, null, 2) + '\n');
-  
+
   console.log(`✅ Constitution checksum updated: ${fileCount} files hashed`);
 }
 

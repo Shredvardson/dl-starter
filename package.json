@@ -21,7 +21,7 @@
     "debug:env": "tsx scripts/debug.ts env:check",
     "debug:health": "tsx scripts/debug.ts dev:health",
     "new-app": "tsx scripts/new-app.ts",
-    "new-repo": "tsx scripts/new-repo-from-template.ts", 
+    "new-repo": "tsx scripts/new-repo-from-template.ts",
     "doctor": "tsx scripts/starter-doctor.ts",
     "constitution:update": "tsx scripts/update-constitution-checksum.ts"
   },
