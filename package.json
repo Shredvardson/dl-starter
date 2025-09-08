@@ -24,7 +24,7 @@
     "new-repo": "tsx scripts/new-repo-from-template.ts",
     "doctor": "tsx scripts/starter-doctor.ts",
     "constitution:update": "tsx scripts/update-constitution-checksum.ts",
-    "preflight:placeholders": "bash -lc '! grep -R \"{{PLACEHOLDER}}\" . -n --exclude-dir=node_modules --exclude=.turbo'"
+    "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

@@ -62,7 +62,7 @@ function checkPlaceholders(): CheckResult {
       name: 'Placeholder Check',
       status: 'fail',
       message: `Found ${filesWithPlaceholders.length} files with unreplaced placeholders: ${filesWithPlaceholders.slice(0, 3).join(', ')}${filesWithPlaceholders.length > 3 ? '...' : ''}`,
-      fix: 'Run the new-app bootstrap script or manually replace {{PLACEHOLDER}} values',
+      fix: `Run the new-app bootstrap script or manually replace ${'{' + '{PLACEHOLDER}' + '}'} values`,
     };
   }
 

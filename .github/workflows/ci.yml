@@ -44,9 +44,11 @@ jobs:
 
       - name: Preflight (placeholders & env.example)
         run: |
-          MATCHES=$(grep -R "{{PLACEHOLDER}}" -n --exclude-dir=node_modules --exclude-dir=.turbo . || true)
+          # Build the token string without ever writing {{PLACEHOLDER}} to the repo
+          PATTERN="{{"; PATTERN+="PLACEHOLDER"; PATTERN+="}}"
+          MATCHES=$(grep -R "$PATTERN" -n --exclude-dir=node_modules --exclude-dir=.turbo -- . || true)
           if [ -n "$MATCHES" ]; then
-            echo "::error title=Unreplaced placeholders detected::\n$MATCHES\nFix: replace all {{PLACEHOLDER}} tokens (see files above)."
+            echo "::error title=Unreplaced placeholders detected::%0A$MATCHES%0AFix: replace all placeholder tokens (see files above)."
             exit 1
           fi
           [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
