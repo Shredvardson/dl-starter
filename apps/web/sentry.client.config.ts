@@ -30,7 +30,7 @@ if (env.NEXT_PUBLIC_SENTRY_DSN) {
     replaysOnErrorSampleRate: 1.0,
 
     // Filter out development/local errors
-    beforeSend(event, hint) {
+    beforeSend(event) {
       // Don't send events for localhost in development
       if (
         env.NODE_ENV === 'development' &&
