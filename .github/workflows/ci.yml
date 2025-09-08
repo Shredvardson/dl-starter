@@ -1,7 +1,10 @@
 name: CI
 on:
-  push: { branches: [main] }
+  push:
+    branches: [ "**" ]          # run on any branch push
   pull_request:
+    branches: [ "**" ]          # run on any PR
+  workflow_dispatch: {}         # enables manual runs
 jobs:
   ci:
     runs-on: ubuntu-latest
