@@ -54,6 +54,18 @@ Lightweight, LLM-friendly Next.js starter template with Turborepo.
 
 `pnpm turbo run dev --filter=web` / `pnpm turbo run build` / `pnpm turbo run typecheck` / `pnpm turbo run test`
 
+## CI Overview
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs three parallel jobs on every push, PR, and manual trigger:
+
+- **ci**: Main build pipeline (lint with zero warnings, typecheck, build, tests, artifact upload)
+- **doctor**: Runs `starter-doctor.ts` to validate template integrity and configuration
+- **constitution-guard**: Ensures architectural rules are followed when binding source files change
+
+**Manual runs**: Use GitHub's "Run workflow" button or `gh workflow run "CI" --ref your-branch`
+
+**Node matrix**: Enable testing on Node 18 + 20 by checking "Enable Node.js matrix testing" when manually triggering
+
 ## Node & pnpm
 
 Node 22 (see `.nvmrc` / `.node-version`). pnpm version is managed by `packageManager` in `package.json`.

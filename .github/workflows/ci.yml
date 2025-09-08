@@ -4,10 +4,22 @@ on:
     branches: [ "**" ]          # run on any branch push
   pull_request:
     branches: [ "**" ]          # run on any PR
-  workflow_dispatch: {}         # enables manual runs
+  workflow_dispatch:
+    inputs:
+      matrix_enabled:
+        description: 'Enable Node.js matrix testing (18, 20)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   ci:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ${{ github.event.inputs.matrix_enabled == 'true' && fromJSON('[18, 20]') || fromJSON('[20]') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -17,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: Print versions & pnpm config
@@ -26,11 +38,17 @@ jobs:
           node -v
           pnpm config get ignore-scripts || true
 
-      - name: Install
-        run: pnpm i --frozen-lockfile
+      - name: Preflight (placeholders & env.example)
+        run: |
+          if grep -R "{{PLACEHOLDER}}" . -n --exclude-dir=node_modules --exclude=.turbo | grep -q .; then
+            echo "Unreplaced {{PLACEHOLDER}} found"; exit 1; fi
+          [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
 
-      - name: Lint
-        run: pnpm turbo run lint
+      - name: Install
+        run: pnpm -w install --frozen-lockfile
+
+      - name: Lint (no warnings allowed)
+        run: pnpm turbo run lint && pnpm -w exec eslint . --max-warnings=0
 
       - name: Typecheck
         run: pnpm turbo run typecheck
@@ -46,6 +64,14 @@ jobs:
 
       - name: E2E tests
         run: pnpm test:e2e
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build-${{ matrix.node-version }}
+          path: apps/web/.next
+          retention-days: 3
 
   doctor:
     runs-on: ubuntu-latest
