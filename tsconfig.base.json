@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ui/components": ["packages/ui/src/index.ts", "packages/ui/index.ts"],
+      "@ui/*": ["packages/ui/src/*", "packages/ui/*"],
+      "@shared/types": ["packages/types/src/index.ts", "packages/types/index.ts"],
+      "@shared/ai": ["packages/ai/src/index.ts", "packages/ai/index.ts"], 
+      "@shared/config": ["packages/config/src/index.js", "packages/config/index.js"]
+    }
+  }
+}
