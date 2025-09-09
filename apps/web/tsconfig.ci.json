@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node", "react", "react-dom"],
+    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   },
   "exclude": [
     "vitest.config.ts",
