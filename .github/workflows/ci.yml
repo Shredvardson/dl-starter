@@ -20,12 +20,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          package_json_file: package.json
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'pnpm'
 
       - name: Print versions & pnpm config
@@ -37,11 +35,20 @@ jobs:
       - name: Install
         run: pnpm i --frozen-lockfile
 
+      - name: Lint
+        run: pnpm -w exec eslint apps/web --max-warnings=0
+
       - name: Typecheck
-        run: pnpm exec tsc --noEmit
+        run: pnpm -w exec tsc -p apps/web/tsconfig.json --noEmit
 
       - name: Build
-        run: pnpm build
+        run: pnpm --filter=web run build
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: web-next-build
+          path: apps/web/.next
 
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps
