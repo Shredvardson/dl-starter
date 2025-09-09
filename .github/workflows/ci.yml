@@ -95,10 +95,10 @@ jobs:
       - name: Ensure web deps are linked
         run: pnpm --filter=web install
 
-      - name: Debug node types presence (one-off)
+      - name: Debug node types in web (one-off)
         run: |
-          echo "PWD=$(pwd)"
-          pnpm --filter=web ls @types/node || true
+          echo "CWD=$(pwd)"
+          pnpm --filter=web ls @types/node @types/react @types/react-dom || true
           pnpm --filter=web exec node -e "try{console.log('resolve @types/node:',require.resolve('@types/node/package.json'))}catch(e){console.error('resolve failed:',e.message)}"
           pnpm --filter=web exec bash -lc "ls -la node_modules/@types || true; ls -la node_modules/@types/node || true"
           pnpm --filter=web exec tsc -p tsconfig.ci.json --showConfig | sed -n '1,200p'
