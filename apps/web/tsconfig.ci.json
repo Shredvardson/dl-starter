@@ -2,8 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "skipLibCheck": true,
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types"]
+    "types": ["node"]
   },
   "exclude": [
     "vitest.config.ts",
