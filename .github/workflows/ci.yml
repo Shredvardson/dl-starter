@@ -63,7 +63,7 @@ jobs:
           pnpm config get ignore-scripts || true
 
       - name: Install
-        run: pnpm -w install --frozen-lockfile
+        run: pnpm -w install --frozen-lockfile --include=dev
 
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
