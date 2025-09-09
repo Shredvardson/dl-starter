@@ -82,6 +82,11 @@ jobs:
             exit 1
           fi
 
+      - name: Debug ESLint dependencies
+        run: |
+          pnpm --filter=web ls @eslint/eslintrc || true
+          node -e "try{console.log(require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('resolve failed:',e.message)}"
+
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
