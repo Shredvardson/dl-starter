@@ -32,7 +32,16 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
+          package_json_file: package.json
           run_install: false
+
+      - name: Ensure pnpm present (guard)
+        run: |
+          if ! command -v pnpm >/dev/null 2>&1; then
+            corepack enable
+            corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+          fi
+          pnpm -v
 
       # Preflight: placeholders + env
       - name: Preflight (placeholders & env)
