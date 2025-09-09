@@ -23,7 +23,7 @@ try {
   nextConfigs = []
 }
 
-export default [
+const config = [
   ...nextConfigs,
   {
     ignores: [
@@ -34,3 +34,5 @@ export default [
     ],
   },
 ]
+
+export default config
