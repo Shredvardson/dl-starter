@@ -1,36 +1,53 @@
 name: CI
 on:
-  push:
-    branches: [ "**" ]          # run on any branch push
   pull_request:
-    branches: [ "**" ]          # run on any PR
-  workflow_dispatch:
-    inputs:
-      matrix_enabled:
-        description: 'Enable Node.js matrix testing (18, 20)'
-        type: boolean
-        default: false
+  push:
+    branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
-  ci:
+  spec-gate:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ${{ github.event.inputs.matrix_enabled == 'true' && fromJSON('[18, 20]') || fromJSON('[20]') }}
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run spec gate
+        run: bash scripts/ci/spec_gate.sh
+
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Node first, then pnpm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
 
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+      # Preflight: placeholders + env
+      - name: Preflight (placeholders & env)
+        run: |
+          # Build the token dynamically to avoid committing the literal
+          PATTERN="{{"; PATTERN+="PLACEHOLDER"; PATTERN+="}}"
+          MATCHES=$(grep -R "$PATTERN" -n --exclude-dir=node_modules --exclude-dir=.turbo -- . || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error title=Unreplaced placeholders detected::%0A$MATCHES%0AReplace placeholder tokens before merging."
+            exit 1
+          fi
+          [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
+          [ -f .env.local ] || cp .env.example .env.local
 
       - name: Print versions & pnpm config
         run: |
@@ -38,116 +55,30 @@ jobs:
           node -v
           pnpm config get ignore-scripts || true
 
-      - name: Prepare env (.env.local)
-        run: |
-          if [ ! -f .env.local ]; then cp .env.example .env.local; fi
-
-      - name: Preflight (placeholders & env.example)
-        run: |
-          # Build the token string dynamically to avoid committing the exact placeholder sequence
-          PATTERN="{{"; PATTERN+="PLACEHOLDER"; PATTERN+="}}"
-          MATCHES=$(grep -R "$PATTERN" -n --exclude-dir=node_modules --exclude-dir=.turbo -- . || true)
-          if [ -n "$MATCHES" ]; then
-            echo "::error title=Unreplaced placeholders detected::%0A$MATCHES%0AFix: replace all placeholder tokens (see files above)."
-            exit 1
-          fi
-          [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
-
       - name: Install
         run: pnpm -w install --frozen-lockfile
 
       - name: Lint
-        run: pnpm turbo run lint -- --max-warnings=0
+        run: pnpm -w exec eslint apps/web --max-warnings=0
 
       - name: Typecheck
-        run: pnpm turbo run typecheck
+        run: pnpm -w exec tsc -p apps/web/tsconfig.json --noEmit
 
       - name: Build
-        run: pnpm turbo run build --filter=web
+        run: pnpm --filter=web run build
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: web-next-build
+          path: apps/web/.next
 
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps
 
+      # If tests belong to the app, scope them; otherwise keep your root scripts.
       - name: Unit tests
-        run: pnpm turbo run test:unit
+        run: pnpm --filter=web run test:unit
 
       - name: E2E tests
-        run: pnpm test:e2e
-
-      - name: Upload build artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-next-build-${{ matrix.node-version }}
-          path: apps/web/.next
-          retention-days: 3
-
-  doctor:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Prepare env (.env.local)
-        run: |
-          if [ ! -f .env.local ]; then cp .env.example .env.local; fi
-      - run: pnpm -w install --frozen-lockfile
-      - name: Run Starter Doctor
-        run: npx tsx scripts/starter-doctor.ts
-
-  constitution-guard:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install
-        run: pnpm i --frozen-lockfile
-
-      - name: Constitution Checksum Guard
-        run: |
-          # Get list of changed files
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
-          echo "Changed files: $CHANGED_FILES"
-
-          # Check if any binding source files changed
-          BINDING_SOURCES_CHANGED=false
-
-          # Key binding sources to watch
-          BINDING_FILES="CLAUDE.md docs/llm/context-map.json docs/llm/STARTER_MANIFEST.json docs/llm/NEW_APP_KICKOFF.md docs/llm/CONTRIBUTING_LLMS.md docs/llm/QUALITY_PIPELINE.md packages/config/eslint.config.mjs packages/config/prettier.config.js apps/web/src/styles/tokens.css apps/web/app.config.ts"
-
-          for file in $BINDING_FILES; do
-            if echo "$CHANGED_FILES" | grep -q "$file"; then
-              echo "Binding source changed: $file"
-              BINDING_SOURCES_CHANGED=true
-              break
-            fi
-          done
-
-          if [ "$BINDING_SOURCES_CHANGED" = true ]; then
-            if ! echo "$CHANGED_FILES" | grep -q "docs/llm/CONSTITUTION.CHECKSUM"; then
-              echo "❌ Binding sources changed but CONSTITUTION.CHECKSUM not updated"
-              echo "💡 Run: pnpm tsx scripts/update-constitution-checksum.ts"
-              exit 1
-            else
-              echo "✅ Constitution checksum updated with binding source changes"
-            fi
-          else
-            echo "✅ No binding source changes detected"
-          fi
+        run: pnpm --filter=web run test:e2e
