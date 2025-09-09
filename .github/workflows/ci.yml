@@ -93,7 +93,7 @@ jobs:
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
       - name: Typecheck
-        run: pnpm -w exec tsc -p apps/web/tsconfig.ci.json --noEmit
+        run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit
 
       - name: Build
         run: pnpm --filter=web run build
