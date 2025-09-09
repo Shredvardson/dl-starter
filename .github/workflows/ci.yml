@@ -85,7 +85,9 @@ jobs:
       - name: Debug ESLint dependencies
         run: |
           pnpm --filter=web ls @eslint/eslintrc || true
-          node -e "try{console.log(require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('resolve failed:',e.message)}"
+          pnpm --filter=web ls eslint-config-next || true
+          node -e "try{console.log('eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
+          node -e "try{console.log('next-config:',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('next-config resolve failed:',e.message)}"
 
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
