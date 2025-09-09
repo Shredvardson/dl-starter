@@ -65,8 +65,14 @@ jobs:
           node -v
           pnpm config get ignore-scripts || true
 
+      - name: Tooling versions
+        run: |
+          pnpm -v
+          node -v
+          echo "NODE_ENV=${NODE_ENV:-<unset>}"
+
       - name: Install
-        run: pnpm -w install --include=dev
+        run: pnpm -w install
 
       - name: Ensure lockfile unchanged
         run: |
