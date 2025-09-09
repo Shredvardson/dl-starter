@@ -1,0 +1,18 @@
+{
+  "name": "@shared/ai",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@shared/types": "workspace:*",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@shared/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

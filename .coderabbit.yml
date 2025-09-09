@@ -1,0 +1,13 @@
+enabled: true
+review:
+  auto_review: false # don't run by default
+  require_label: 'ai-review' # only run when this label is added
+  high_level_summary: true
+  path_includes:
+    - 'apps/**'
+    - 'packages/**'
+  path_excludes:
+    - '**/*.md'
+    - '**/*.spec.*'
+post_review:
+  request_changes: false

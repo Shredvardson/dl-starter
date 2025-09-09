@@ -5,6 +5,9 @@
   "defaults": {
     "app_name": "Your App",
     "app_slug": "your-app",
+    "primary_domain": "localhost:3000",
+    "company_name": "Your Company",
+    "default_locale": "en-US",
     "homepage_route": "/",
     "signed_in_route": "/dashboard",
     "brand": { "hue": 222 },
@@ -28,6 +31,10 @@
     "NEXT_PUBLIC_FLAG_BETA_FEATURE=false",
     "AUTH_ENABLED=0",
     "STRIPE_PUBLIC_KEY=",
-    "STRIPE_SECRET_KEY="
+    "STRIPE_SECRET_KEY=",
+    "SENTRY_DSN=",
+    "NEXT_PUBLIC_SENTRY_DSN=",
+    "SENTRY_ORG=",
+    "SENTRY_PROJECT="
   ]
 }

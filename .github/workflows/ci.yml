@@ -1,21 +1,63 @@
 name: CI
 on:
-  push: { branches: [main] }
   pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  ci:
+  spec-gate:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run spec gate
+        run: bash scripts/ci/spec_gate.sh
+
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: package.json
+          run_install: false
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
+      - name: Print PNPM version
+        run: pnpm -v
+
+      - name: Ensure pnpm present (guard)
+        run: |
+          if ! command -v pnpm >/dev/null 2>&1; then
+            corepack enable
+            corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
+          fi
+          pnpm -v
+
+      # Preflight: placeholders + env
+      - name: Preflight (placeholders & env)
+        run: |
+          # Build the token dynamically to avoid committing the literal
+          PATTERN="{{"; PATTERN+="PLACEHOLDER"; PATTERN+="}}"
+          MATCHES=$(grep -R "$PATTERN" -n --exclude-dir=node_modules --exclude-dir=.turbo -- . || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::error title=Unreplaced placeholders detected::%0A$MATCHES%0AReplace placeholder tokens before merging."
+            exit 1
+          fi
+          [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
+          [ -f .env.local ] || cp .env.example .env.local
 
       - name: Print versions & pnpm config
         run: |
@@ -23,20 +65,70 @@ jobs:
           node -v
           pnpm config get ignore-scripts || true
 
+      - name: Tooling versions
+        run: |
+          pnpm -v
+          node -v
+          echo "NODE_ENV=${NODE_ENV:-<unset>}"
+
       - name: Install
-        run: pnpm i --frozen-lockfile
+        run: pnpm -w install
+
+      - name: Ensure lockfile unchanged
+        run: |
+          if ! git diff --quiet -- pnpm-lock.yaml; then
+            echo "::error title=Lockfile changed during install::Commit pnpm-lock.yaml before pushing."
+            git --no-pager diff -- pnpm-lock.yaml | sed -n '1,200p'
+            exit 1
+          fi
+
+      - name: Debug ESLint deps in web (one-off)
+        run: |
+          pnpm --filter=web ls eslint-config-next next @eslint/eslintrc || true
+          node -e "try{console.log('resolve cfg:',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('cfg resolve failed:',e.message)}"
+          node -e "try{console.log('resolve next:',require.resolve('next',{paths:['apps/web']}))}catch(e){console.error('next resolve failed:',e.message)}"
+          node -e "try{console.log('resolve eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
+
+      - name: Lint
+        run: pnpm --filter=web exec eslint . --max-warnings=0
+
+      - name: Ensure web deps are linked
+        run: pnpm --filter=web install
+
+      - name: Debug node types in web (one-off)
+        run: |
+          echo "CWD=$(pwd)"
+          pnpm --filter=web ls @types/node @types/react @types/react-dom || true
+          pnpm --filter=web exec node -e "try{console.log('resolve @types/node:',require.resolve('@types/node/package.json'))}catch(e){console.error('resolve failed:',e.message)}"
+          pnpm --filter=web exec bash -lc "ls -la node_modules/@types || true; ls -la node_modules/@types/node || true"
+          pnpm --filter=web exec tsc -p tsconfig.ci.json --showConfig | sed -n '1,200p'
+
+      - name: Debug UI deps (one-off)
+        run: |
+          pnpm --filter=@ui/components ls clsx tailwind-merge || true
+          pnpm --filter=@ui/components exec node -e "try{console.log('clsx:',require.resolve('clsx'));console.log('tw-merge:',require.resolve('tailwind-merge'))}catch(e){console.error('resolve failed:',e.message)}"
+
+      - name: Ensure UI deps are linked
+        run: pnpm --filter=@ui/components install
 
       - name: Typecheck
-        run: pnpm exec tsc --noEmit
+        run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit
 
       - name: Build
-        run: pnpm build
+        run: pnpm --filter=web run build
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: web-next-build
+          path: apps/web/.next
 
       - name: Install Playwright browsers
         run: pnpm dlx playwright install --with-deps
 
+      # If tests belong to the app, scope them; otherwise keep your root scripts.
       - name: Unit tests
-        run: pnpm test:unit
+        run: pnpm --filter=web run test:unit
 
       - name: E2E tests
-        run: pnpm test:e2e
+        run: pnpm --filter=web run test:e2e
