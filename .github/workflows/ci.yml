@@ -92,6 +92,9 @@ jobs:
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
+      - name: Ensure web deps are linked
+        run: pnpm --filter=web install
+
       - name: Debug node types presence (one-off)
         run: |
           echo "PWD=$(pwd)"
