@@ -11,7 +11,7 @@ const compat = new FlatCompat({
   resolvePluginsRelativeTo: __dirname,
 })
 
-export default [
+const config = [
   // Use Next legacy presets via compat; no '@eslint/js' import
   ...compat.extends(
     'next/core-web-vitals',
@@ -26,3 +26,5 @@ export default [
     ],
   },
 ]
+
+export default config
