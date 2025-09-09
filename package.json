@@ -27,6 +27,7 @@
     "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
     "@playwright/test": "^1.55.0",
     "commander": "^14.0.0",
     "eslint": "^9.34.0",
