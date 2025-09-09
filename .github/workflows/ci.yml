@@ -92,10 +92,13 @@ jobs:
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
-      - name: Debug Node types in web (one-off)
+      - name: Debug node types presence (one-off)
         run: |
+          echo "PWD=$(pwd)"
           pnpm --filter=web ls @types/node || true
-          node -e "try{console.log('resolve @types/node:',require.resolve('@types/node/package.json',{paths:['apps/web']}))}catch(e){console.error('resolve failed:',e.message)}"
+          pnpm --filter=web exec node -e "try{console.log('resolve @types/node:',require.resolve('@types/node/package.json'))}catch(e){console.error('resolve failed:',e.message)}"
+          pnpm --filter=web exec bash -lc "ls -la node_modules/@types || true; ls -la node_modules/@types/node || true"
+          pnpm --filter=web exec tsc -p tsconfig.ci.json --showConfig | sed -n '1,200p'
 
       - name: Typecheck
         run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit
