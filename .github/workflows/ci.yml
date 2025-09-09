@@ -103,6 +103,14 @@ jobs:
           pnpm --filter=web exec bash -lc "ls -la node_modules/@types || true; ls -la node_modules/@types/node || true"
           pnpm --filter=web exec tsc -p tsconfig.ci.json --showConfig | sed -n '1,200p'
 
+      - name: Debug UI deps (one-off)
+        run: |
+          pnpm --filter=@ui/components ls clsx tailwind-merge || true
+          pnpm --filter=@ui/components exec node -e "try{console.log('clsx:',require.resolve('clsx'));console.log('tw-merge:',require.resolve('tailwind-merge'))}catch(e){console.error('resolve failed:',e.message)}"
+
+      - name: Ensure UI deps are linked
+        run: pnpm --filter=@ui/components install
+
       - name: Typecheck
         run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit
 
