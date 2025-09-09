@@ -82,12 +82,13 @@ jobs:
             exit 1
           fi
 
-      - name: Debug ESLint dependencies
+      - name: Debug ESLint deps in web
         run: |
-          pnpm --filter=web ls @eslint/eslintrc || true
-          pnpm --filter=web ls eslint-config-next || true
-          node -e "try{console.log('eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
-          node -e "try{console.log('next-config:',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('next-config resolve failed:',e.message)}"
+          pnpm --filter=web ls @eslint/eslintrc @eslint/js eslint-config-next next typescript || true
+          node -e "try{console.log('resolve eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
+          node -e "try{console.log('resolve js      :',require.resolve('@eslint/js',{paths:['apps/web']}))}catch(e){console.error('js resolve failed:',e.message)}"
+          node -e "try{console.log('resolve cfg     :',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('cfg resolve failed:',e.message)}"
+          node -e "try{console.log('resolve next    :',require.resolve('next',{paths:['apps/web']}))}catch(e){console.error('next resolve failed:',e.message)}"
 
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
