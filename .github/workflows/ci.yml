@@ -82,6 +82,13 @@ jobs:
             exit 1
           fi
 
+      - name: Debug ESLint deps in web (one-off)
+        run: |
+          pnpm --filter=web ls eslint-config-next next @eslint/eslintrc || true
+          node -e "try{console.log('resolve cfg:',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('cfg resolve failed:',e.message)}"
+          node -e "try{console.log('resolve next:',require.resolve('next',{paths:['apps/web']}))}catch(e){console.error('next resolve failed:',e.message)}"
+          node -e "try{console.log('resolve eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
+
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
