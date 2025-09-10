@@ -29,14 +29,15 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 20
+          cache: 'pnpm'
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          package_json_file: package.json
-          run_install: false
+          version: 9
 
-      - name: Print PNPM version
-        run: pnpm -v
+      - name: Print versions
+        run: node -v && pnpm -v
 
       - name: Ensure pnpm present (guard)
         run: |
@@ -72,7 +73,7 @@ jobs:
           echo "NODE_ENV=${NODE_ENV:-<unset>}"
 
       - name: Install
-        run: pnpm -w install
+        run: pnpm install --frozen-lockfile
 
       - name: Ensure lockfile unchanged
         run: |
