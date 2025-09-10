@@ -19,12 +19,14 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.0
+          version: 9
           run_install: false
-      - uses: actions/setup-node@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - name: Install (frozen)
         run: pnpm install --frozen-lockfile
       - name: Check React versions
@@ -52,16 +54,20 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.0
+          version: 9
           run_install: false
 
-      - uses: actions/setup-node@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Print versions
-        run: node -v && pnpm -v
+      - name: Show versions
+        run: |
+          node -v
+          pnpm -v
 
       - name: Ensure pnpm present (guard)
         run: |
@@ -83,18 +89,6 @@ jobs:
           fi
           [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
           [ -f .env.local ] || cp .env.example .env.local
-
-      - name: Print versions & pnpm config
-        run: |
-          pnpm -v
-          node -v
-          pnpm config get ignore-scripts || true
-
-      - name: Tooling versions
-        run: |
-          pnpm -v
-          node -v
-          echo "NODE_ENV=${NODE_ENV:-<unset>}"
 
       - name: Install
         run: pnpm install --frozen-lockfile
