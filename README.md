@@ -68,4 +68,4 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs three parallel job
 
 ## Node & pnpm
 
-Node 22 (see `.nvmrc` / `.node-version`). pnpm version is managed by `packageManager` in `package.json`.
+Node 20 (see `.nvmrc` / `.node-version`). pnpm version is managed by `packageManager` in `package.json`.
