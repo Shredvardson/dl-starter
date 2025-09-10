@@ -30,7 +30,7 @@
     "@eslint/eslintrc": "^3.1.0",
     "@playwright/test": "^1.55.0",
     "commander": "^14.0.0",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "turbo": "^2.3.3",
