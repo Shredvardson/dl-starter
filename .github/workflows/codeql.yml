@@ -1,0 +1,32 @@
+name: CodeQL
+  on:
+    push: { branches: [main] }
+    pull_request: { branches: [main] }
+    schedule:
+      - cron: "0 5 * * 1"  # Mondays 05:00 UTC
+  jobs:
+    analyze:
+      permissions:
+        actions: read
+        contents: read
+        security-events: write
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: pnpm/action-setup@v4
+          with:
+            version: 9.12.0  # Fixed version to match 
+  package.json
+            run_install: false  # Changed to false, install 
+  later if needed
+        - uses: actions/setup-node@v5
+          with:
+            node-version: '20'
+            cache: 'pnpm'  # Added pnpm cache
+        - uses: github/codeql-action/init@v3
+          with:
+            languages: javascript-typescript
+            queries: security-and-quality
+        - name: Install dependencies
+          run: pnpm install --frozen-lockfile
+        - uses: github/codeql-action/analyze@v3
