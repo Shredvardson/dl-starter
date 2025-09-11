@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "07:00"
-      timezone: "UTC"
+      timezone: "Europe/Stockholm"
     open-pull-requests-limit: 5
     versioning-strategy: increase
     rebase-strategy: auto
@@ -40,6 +40,6 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "07:15"
-      timezone: "UTC"
+      timezone: "Europe/Stockholm"
     open-pull-requests-limit: 5
     labels: ["dependencies", "ci"]

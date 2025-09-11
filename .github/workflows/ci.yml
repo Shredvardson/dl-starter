@@ -54,20 +54,16 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.12.0
           run_install: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Show versions
-        run: |
-          node -v
-          pnpm -v
+      - name: Print versions
+        run: node -v && pnpm -v
 
       - name: Ensure pnpm present (guard)
         run: |
