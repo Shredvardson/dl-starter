@@ -9,6 +9,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  setup:
+    uses: ./.github/workflows/_setup-pnpm.yml
+
   spec-gate:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -20,6 +23,7 @@ jobs:
         run: bash scripts/ci/spec_gate.sh
 
   ci:
+    needs: setup
     runs-on: ubuntu-latest
     env:
       TURBO_TELEMETRY_DISABLED: '1'
@@ -37,16 +41,8 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Print versions
-        run: node -v && pnpm -v
-
-      - name: Ensure pnpm present (guard)
-        run: |
-          if ! command -v pnpm >/dev/null 2>&1; then
-            corepack enable
-            corepack prepare "$(node -p "require('./package.json').packageManager")" --activate
-          fi
-          pnpm -v
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       # Preflight: placeholders + env
       - name: Preflight (placeholders & env)
@@ -60,29 +56,6 @@ jobs:
           fi
           [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
           [ -f .env.local ] || cp .env.example .env.local
-
-      - name: Print versions & pnpm config
-        run: |
-          pnpm -v
-          node -v
-          pnpm config get ignore-scripts || true
-
-      - name: Tooling versions
-        run: |
-          pnpm -v
-          node -v
-          echo "NODE_ENV=${NODE_ENV:-<unset>}"
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      - name: Ensure lockfile unchanged
-        run: |
-          if ! git diff --quiet -- pnpm-lock.yaml; then
-            echo "::error title=Lockfile changed during install::Commit pnpm-lock.yaml before pushing."
-            git --no-pager diff -- pnpm-lock.yaml | sed -n '1,200p'
-            exit 1
-          fi
 
       - name: Debug ESLint deps in web (one-off)
         run: |
