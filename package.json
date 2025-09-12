@@ -14,7 +14,7 @@
     "format": "prettier -w .",
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
-    "test:e2e": "playwright test",
+    "test:e2e": "turbo run test:e2e --filter=web",
     "typecheck": "turbo run typecheck",
     "debug": "tsx scripts/debug.ts",
     "debug:sentry": "tsx scripts/debug.ts sentry:check",
