@@ -1,0 +1,133 @@
+{
+  "generated": "2025-09-12T08:58:19.252Z",
+  "packages": {
+    "web": {
+      "scripts": {
+        "dev": "next dev --turbopack",
+        "build": "next build --turbopack",
+        "start": "next start",
+        "lint": "eslint .",
+        "test": "vitest",
+        "test:unit": "vitest --run --config vitest.config.ts",
+        "typecheck": "tsc --noEmit"
+      },
+      "dir": "apps/web"
+    },
+    "@shared/ai": {
+      "scripts": {
+        "typecheck": "tsc --noEmit"
+      },
+      "dir": "packages/ai"
+    },
+    "@shared/config": {
+      "scripts": {},
+      "dir": "packages/config"
+    },
+    "@shared/types": {
+      "scripts": {
+        "typecheck": "tsc --noEmit"
+      },
+      "dir": "packages/types"
+    },
+    "@ui/components": {
+      "scripts": {
+        "typecheck": "tsc --noEmit"
+      },
+      "dir": "packages/ui"
+    },
+    "dl-starter-new": {
+      "scripts": {
+        "dev": "turbo run dev --filter=web",
+        "build": "turbo run build",
+        "start": "turbo run start --filter=web",
+        "lint": "turbo run lint",
+        "format": "prettier -w .",
+        "test": "turbo run test",
+        "test:unit": "turbo run test:unit",
+        "test:e2e": "playwright test",
+        "typecheck": "turbo run typecheck",
+        "debug": "tsx scripts/debug.ts",
+        "debug:sentry": "tsx scripts/debug.ts sentry:check",
+        "debug:env": "tsx scripts/debug.ts env:check",
+        "debug:health": "tsx scripts/debug.ts dev:health",
+        "new-app": "tsx scripts/new-app.ts",
+        "new-repo": "tsx scripts/new-repo-from-template.ts",
+        "doctor": "tsx scripts/starter-doctor.ts",
+        "doctor:report": "tsx scripts/starter-doctor.ts --report artifacts/doctor-report.md",
+        "constitution:update": "tsx scripts/update-constitution-checksum.ts",
+        "check:react-versions": "node scripts/check-react-versions.mjs",
+        "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'",
+        "git:cleanup": "bash scripts/cleanup-branches.sh --dry-run",
+        "git:cleanup-force": "bash scripts/cleanup-branches.sh",
+        "git:finish": "bash scripts/cleanup-branches.sh --current"
+      },
+      "dir": "."
+    }
+  },
+  "commandDocs": {
+    ".claude/commands/dev/implement.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/dev/init-new-app.md": {
+      "scripts": [
+        "`pnpm typecheck && pnpm build`"
+      ],
+      "paths": [
+        "`docs/llm/STARTER_MANIFEST.json`",
+        "`docs/llm/NEW_APP_KICKOFF.md`"
+      ],
+      "anchors": []
+    },
+    ".claude/commands/dev/plan-feature.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/dev/refactor-secure.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/docs/generate.md": {
+      "scripts": [],
+      "paths": [
+        "`\n- Component props and usage\n- Installation/development setup\n- Available scripts in `"
+      ],
+      "anchors": []
+    },
+    ".claude/commands/git/commit.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/git/prepare-pr.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/git/tag-release.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/quality/run-linter.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/review/self-critique.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/test/scaffold.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    }
+  },
+  "orphanedDocs": [],
+  "turboTasks": {}
+}
