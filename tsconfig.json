@@ -12,14 +12,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@ui/*": ["./packages/ui/*"],
-      "@shared/types": ["./packages/types"],
-      "@shared/ai": ["./packages/ai"],
-      "@shared/config": ["./packages/config"]
-    }
+    "incremental": true
+    // rely on tsconfig.base.json for baseUrl + paths to avoid drift
   },
   "include": [],
   "exclude": ["node_modules", ".next", "dist"]
