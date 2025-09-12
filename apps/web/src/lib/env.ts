@@ -33,6 +33,7 @@ export const env = createEnv({
 
   client: {
     NEXT_PUBLIC_APP_NAME: z.string().default('DL Starter'),
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
     NEXT_PUBLIC_FLAG_BETA_FEATURE: zBool.default(false),
@@ -59,6 +60,7 @@ export const env = createEnv({
     AUTH_ENABLED: process.env.AUTH_ENABLED,
 
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_FLAG_BETA_FEATURE: process.env.NEXT_PUBLIC_FLAG_BETA_FEATURE,
