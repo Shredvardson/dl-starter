@@ -1,8 +1,6 @@
 #!/usr/bin/env tsx
 import { exit } from 'process';
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 function validateEnvironment() {
   console.log('🔍 Validating environment variables...');
   
@@ -10,6 +8,9 @@ function validateEnvironment() {
     // Import and validate environment schema
     const { env } = require('../apps/web/src/lib/env');
     console.log('✅ Environment schema validation passed');
+    
+    // Production detection after env validation
+    const isProduction = env.NODE_ENV === 'production';
     
     // Production-specific checks for risky keys only
     if (isProduction) {
@@ -21,13 +22,13 @@ function validateEnvironment() {
         return false;
       }
       
-      if (process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
+      if (env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
         console.error('❌ Production cannot use test Stripe secret key');
         return false;
       }
       
       // Check for localhost URLs (if APP_URL is defined)
-      if (process.env.NEXT_PUBLIC_APP_URL?.includes('localhost')) {
+      if (env.NEXT_PUBLIC_APP_URL?.includes('localhost')) {
         console.error('❌ App URL cannot be localhost in production');
         return false;
       }

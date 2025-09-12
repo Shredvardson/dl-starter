@@ -743,22 +743,24 @@ function checkEnvExampleSafety(): CheckResult {
 
   try {
     const content = readFileSync(examplePath, 'utf8');
-    const secretPatterns = [
-      /^sk_live_[a-zA-Z0-9]{48,}=/m, // Stripe live secret keys
-      /^pk_live_[a-zA-Z0-9]{48,}=/m, // Stripe live publishable keys  
-      /^[a-zA-Z0-9+/]{40,}={0,2}$/m, // Long base64-ish strings
-      /[a-zA-Z0-9]{32,}/,            // Long hex/alphanumeric secrets
-    ];
-    
-    for (const pattern of secretPatterns) {
-      if (pattern.test(content)) {
-        return {
-          name: 'Env Example Safety',
-          status: 'fail',
-          message: 'Found potential real secrets in .env.example',
-          fix: 'Remove real secrets from .env.example - use empty values or placeholders only',
-        };
-      }
+    const suspiciousKeys: string[] = [];
+    for (const line of content.split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z][A-Z0-9_]+)\s*=\s*(.*)$/);
+      if (!m) continue;
+      const key = m[1];
+      const rawVal = m[2].trim().replace(/^"(.*)"$/, '$1');
+      if (!rawVal || rawVal.startsWith('#')) continue;
+      if (/\bsk_live_[A-Za-z0-9]{24,}\b/.test(rawVal)) suspiciousKeys.push(key);
+      if (/\bpk_live_[A-Za-z0-9]{24,}\b/.test(rawVal)) suspiciousKeys.push(key);
+      if (/^[A-Za-z0-9+/]{40,}={0,2}$/.test(rawVal)) suspiciousKeys.push(key); // base64-like
+    }
+    if (suspiciousKeys.length) {
+      return {
+        name: 'Env Example Safety',
+        status: 'fail',
+        message: `Found potential real secrets for keys: ${suspiciousKeys.slice(0, 5).join(', ')}`,
+        fix: 'Remove real secrets from .env.example - use empty values or placeholders only',
+      };
     }
   } catch (error) {
     return {
