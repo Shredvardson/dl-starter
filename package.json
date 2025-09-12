@@ -30,7 +30,8 @@
     "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'",
     "git:cleanup": "bash scripts/cleanup-branches.sh --dry-run",
     "git:cleanup-force": "bash scripts/cleanup-branches.sh",
-    "git:finish": "bash scripts/cleanup-branches.sh --current"
+    "git:finish": "bash scripts/cleanup-branches.sh --current",
+    "docs:check": "tsx scripts/docs-check.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",

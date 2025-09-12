@@ -60,7 +60,7 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs three parallel job
 
 - **ci**: Main build pipeline (lint with zero warnings, typecheck, build, tests, artifact upload)
 - **doctor**: Runs `starter-doctor.ts` to validate template integrity and configuration
-- **constitution-guard**: Ensures architectural rules are followed when binding source files change
+- **spec-gate**: Runs specification gate checks on pull requests
 
 **Manual runs**: Use GitHub's "Run workflow" button or `gh workflow run "CI" --ref your-branch`
 
