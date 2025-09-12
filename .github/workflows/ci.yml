@@ -5,12 +5,47 @@ on:
     branches: [main]
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   setup:
     uses: ./.github/workflows/_setup-pnpm.yml
+
+  doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create artifacts directory
+        run: mkdir -p artifacts
+
+      - name: Run doctor
+        env:
+          DOCTOR_SILENT: 1
+        run: pnpm run doctor:report
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: doctor-report
+          path: |
+            artifacts/doctor-report.md
+            artifacts/command-inventory.json
 
   spec-gate:
     runs-on: ubuntu-latest
@@ -57,34 +92,18 @@ jobs:
           [ -f .env.example ] || (echo "Missing .env.example" && exit 1)
           [ -f .env.local ] || cp .env.example .env.local
 
-      - name: Debug ESLint deps in web (one-off)
-        run: |
-          pnpm --filter=web ls eslint-config-next next @eslint/eslintrc || true
-          node -e "try{console.log('resolve cfg:',require.resolve('eslint-config-next',{paths:['apps/web']}))}catch(e){console.error('cfg resolve failed:',e.message)}"
-          node -e "try{console.log('resolve next:',require.resolve('next',{paths:['apps/web']}))}catch(e){console.error('next resolve failed:',e.message)}"
-          node -e "try{console.log('resolve eslintrc:',require.resolve('@eslint/eslintrc',{paths:['apps/web']}))}catch(e){console.error('eslintrc resolve failed:',e.message)}"
+      - name: Lint GitHub Actions (actionlint)
+        uses: reviewdog/action-actionlint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-check
+          level: error
 
       - name: Lint
         run: pnpm --filter=web exec eslint . --max-warnings=0
 
-      - name: Ensure web deps are linked
-        run: pnpm --filter=web install
-
-      - name: Debug node types in web (one-off)
-        run: |
-          echo "CWD=$(pwd)"
-          pnpm --filter=web ls @types/node @types/react @types/react-dom || true
-          pnpm --filter=web exec node -e "try{console.log('resolve @types/node:',require.resolve('@types/node/package.json'))}catch(e){console.error('resolve failed:',e.message)}"
-          pnpm --filter=web exec bash -lc "ls -la node_modules/@types || true; ls -la node_modules/@types/node || true"
-          pnpm --filter=web exec tsc -p tsconfig.ci.json --showConfig | sed -n '1,200p'
-
-      - name: Debug UI deps (one-off)
-        run: |
-          pnpm --filter=@ui/components ls clsx tailwind-merge || true
-          pnpm --filter=@ui/components exec node -e "try{console.log('clsx:',require.resolve('clsx'));console.log('tw-merge:',require.resolve('tailwind-merge'))}catch(e){console.error('resolve failed:',e.message)}"
-
-      - name: Ensure UI deps are linked
-        run: pnpm --filter=@ui/components install
+      - name: Ensure workspace deps are linked
+        run: pnpm install
 
       - name: Typecheck
         run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit

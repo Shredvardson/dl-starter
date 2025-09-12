@@ -23,6 +23,7 @@
     "new-app": "tsx scripts/new-app.ts",
     "new-repo": "tsx scripts/new-repo-from-template.ts",
     "doctor": "tsx scripts/starter-doctor.ts",
+    "doctor:report": "tsx scripts/starter-doctor.ts --report artifacts/doctor-report.md",
     "constitution:update": "tsx scripts/update-constitution-checksum.ts",
     "check:react-versions": "node scripts/check-react-versions.mjs",
     "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'",
