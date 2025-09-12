@@ -106,7 +106,8 @@ jobs:
         run: pnpm install
 
       - name: Typecheck
-        run: pnpm --filter=web exec tsc -p tsconfig.ci.json --noEmit
+        working-directory: apps/web
+        run: pnpm exec tsc -p tsconfig.ci.json --noEmit
 
       - name: Build
         run: pnpm --filter=web run build

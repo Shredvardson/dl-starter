@@ -23,6 +23,10 @@ export const env = createEnv({
     // Database (optional for now; make required per project)
     DATABASE_URL: z.string().url().optional(),
     
+    // Supabase server keys (optional for now)
+    SUPABASE_URL: z.string().url().optional(),
+    SUPABASE_ANON_KEY: z.string().min(1).optional(),
+    
     // Stripe server configuration
     STRIPE_SECRET_KEY: z.string().optional().refine(val => !isProduction || !val?.startsWith('sk_test_'), 'Test secret key forbidden in production'),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
@@ -53,6 +57,9 @@ export const env = createEnv({
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
 
     DATABASE_URL: process.env.DATABASE_URL,
+    
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
     
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
