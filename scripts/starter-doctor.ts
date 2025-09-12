@@ -1,5 +1,5 @@
-import { readFileSync, existsSync, statSync } from 'fs';
-import { resolve, join } from 'path';
+import { readFileSync, existsSync, statSync, writeFileSync, mkdirSync } from 'fs';
+import { resolve, join, dirname } from 'path';
 import { execSync } from 'child_process';
 
 interface CheckResult {
@@ -777,20 +777,16 @@ function main() {
   if (isReportMode && reportPath) {
     // Generate markdown report
     const reportMarkdown = generateReportMarkdown(checks);
-    const reportDir = require('path').dirname(reportPath);
     
-    // Ensure artifacts directory exists
-    if (!existsSync(reportDir)) {
-      require('fs').mkdirSync(reportDir, { recursive: true });
-    }
-    
-    writeFileSync(reportPath, reportMarkdown);
+    mkdirSync(dirname(reportPath), { recursive: true });
+    writeFileSync(reportPath, reportMarkdown, 'utf8');
     console.log(`📄 Report written to: ${reportPath}`);
     
     // Generate command inventory JSON
     const inventoryPath = reportPath.replace('.md', '.json').replace('doctor-report', 'command-inventory');
     const inventory = generateCommandInventory();
-    writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2));
+    mkdirSync(dirname(inventoryPath), { recursive: true });
+    writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2), 'utf8');
     console.log(`📋 Command inventory written to: ${inventoryPath}`);
     
     // Print first 10 failures inline for CI
