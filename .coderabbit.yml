@@ -1,13 +1,16 @@
-enabled: true
+enabled: true  # flip to false if you want a "bot holiday"
 review:
-  auto_review: false # don't run by default
-  require_label: 'ai-review' # only run when this label is added
+  auto_review: false
+  require_label: 'ai-review'     # only runs when YOU add this label
   high_level_summary: true
   path_includes:
     - 'apps/**'
     - 'packages/**'
   path_excludes:
+    - 'docs/**'
+    - 'scripts/**'
     - '**/*.md'
     - '**/*.spec.*'
+    - '**/*.test.*'
 post_review:
   request_changes: false

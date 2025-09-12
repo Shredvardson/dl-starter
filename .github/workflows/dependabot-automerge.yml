@@ -1,7 +1,13 @@
 name: Automerge Dependabot (minor/patch)
+
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
+
+concurrency:
+  group: dependabot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
