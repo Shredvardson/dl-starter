@@ -1,5 +1,5 @@
-import { readFileSync, existsSync, statSync } from 'fs';
-import { resolve, join } from 'path';
+import { readFileSync, existsSync, statSync, writeFileSync, mkdirSync } from 'fs';
+import { resolve, join, dirname } from 'path';
 import { execSync } from 'child_process';
 
 interface CheckResult {
@@ -108,6 +108,18 @@ function checkPRD(): CheckResult {
 }
 
 function checkEnvironment(): CheckResult {
+  // First validate environment schema
+  try {
+    require('../apps/web/src/lib/env').env;
+  } catch (error: any) {
+    return {
+      name: 'Environment Check',
+      status: 'fail',
+      message: `Environment validation failed: ${error.message}`,
+      fix: 'Check .env.local values against schema in apps/web/src/lib/env.ts',
+    };
+  }
+
   const examplePath = resolve('.env.example');
   const envPath = resolve('.env.local');
 
@@ -719,6 +731,50 @@ function checkCommandDocs(): CheckResult[] {
   return results;
 }
 
+function checkEnvExampleSafety(): CheckResult {
+  const examplePath = resolve('.env.example');
+  if (!existsSync(examplePath)) {
+    return {
+      name: 'Env Example Safety',
+      status: 'pass',
+      message: 'No .env.example to check',
+    };
+  }
+
+  try {
+    const content = readFileSync(examplePath, 'utf8');
+    const secretPatterns = [
+      /^sk_live_[a-zA-Z0-9]{48,}=/m, // Stripe live secret keys
+      /^pk_live_[a-zA-Z0-9]{48,}=/m, // Stripe live publishable keys  
+      /^[a-zA-Z0-9+/]{40,}={0,2}$/m, // Long base64-ish strings
+      /[a-zA-Z0-9]{32,}/,            // Long hex/alphanumeric secrets
+    ];
+    
+    for (const pattern of secretPatterns) {
+      if (pattern.test(content)) {
+        return {
+          name: 'Env Example Safety',
+          status: 'fail',
+          message: 'Found potential real secrets in .env.example',
+          fix: 'Remove real secrets from .env.example - use empty values or placeholders only',
+        };
+      }
+    }
+  } catch (error) {
+    return {
+      name: 'Env Example Safety',
+      status: 'warn',
+      message: 'Could not read .env.example for safety check',
+    };
+  }
+
+  return {
+    name: 'Env Example Safety',
+    status: 'pass',
+    message: '.env.example contains no real secrets',
+  };
+}
+
 function checkReferences(): CheckResult[] {
   const results: CheckResult[] = [];
   
@@ -772,25 +828,21 @@ function main() {
     ...checkNewAppImports(),
     ...checkCommandDocs(),
     ...checkReferences(),
+    checkEnvExampleSafety(),
   ];
 
   if (isReportMode && reportPath) {
     // Generate markdown report
     const reportMarkdown = generateReportMarkdown(checks);
-    const reportDir = require('path').dirname(reportPath);
-    
-    // Ensure artifacts directory exists
-    if (!existsSync(reportDir)) {
-      require('fs').mkdirSync(reportDir, { recursive: true });
-    }
-    
-    writeFileSync(reportPath, reportMarkdown);
+    mkdirSync(dirname(reportPath), { recursive: true });
+    writeFileSync(reportPath, reportMarkdown, 'utf8');
     console.log(`📄 Report written to: ${reportPath}`);
     
     // Generate command inventory JSON
     const inventoryPath = reportPath.replace('.md', '.json').replace('doctor-report', 'command-inventory');
     const inventory = generateCommandInventory();
-    writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2));
+    mkdirSync(dirname(inventoryPath), { recursive: true });
+    writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2), 'utf8');
     console.log(`📋 Command inventory written to: ${inventoryPath}`);
     
     // Print first 10 failures inline for CI
