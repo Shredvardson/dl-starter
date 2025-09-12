@@ -836,7 +836,6 @@ function main() {
   if (isReportMode && reportPath) {
     // Generate markdown report
     const reportMarkdown = generateReportMarkdown(checks);
-    
     mkdirSync(dirname(reportPath), { recursive: true });
     writeFileSync(reportPath, reportMarkdown, 'utf8');
     console.log(`📄 Report written to: ${reportPath}`);
