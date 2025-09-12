@@ -5,8 +5,7 @@
 1) Ensure `main` is green (doctor, build, lint, tests).
 
 2) Bump version + changelog:
-   - Changesets: pnpm changeset version
-   - or semantic-release: runs on main merge
+   - Manual: Update version in package.json and create changelog entry
 
 3) Tag & verify:
    - git tag vX.Y.Z && git push --tags
