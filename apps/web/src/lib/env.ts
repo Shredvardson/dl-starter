@@ -23,6 +23,10 @@ export const env = createEnv({
     // Database (optional for now; make required per project)
     DATABASE_URL: z.string().url().optional(),
     
+    // Supabase server keys (optional for now)
+    SUPABASE_URL: z.string().url().optional(),
+    SUPABASE_ANON_KEY: z.string().min(1).optional(),
+    
     // Stripe server configuration
     STRIPE_SECRET_KEY: z.string().optional().refine(val => !isProduction || !val?.startsWith('sk_test_'), 'Test secret key forbidden in production'),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
@@ -33,6 +37,7 @@ export const env = createEnv({
 
   client: {
     NEXT_PUBLIC_APP_NAME: z.string().default('DL Starter'),
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
     NEXT_PUBLIC_FLAG_BETA_FEATURE: zBool.default(false),
@@ -54,11 +59,15 @@ export const env = createEnv({
 
     DATABASE_URL: process.env.DATABASE_URL,
     
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     AUTH_ENABLED: process.env.AUTH_ENABLED,
 
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_FLAG_BETA_FEATURE: process.env.NEXT_PUBLIC_FLAG_BETA_FEATURE,
