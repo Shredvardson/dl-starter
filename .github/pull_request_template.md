@@ -1,11 +1,19 @@
 # Pull Request
 
 ## Summary
-Brief description of the changes and why they're needed.
+_What changed and why in 1–3 sentences._
 
 ## Scope
 - [ ] Single task type (feature/refactor/test/docs)
 - [ ] Only touched files listed in docs/llm/context-map.json
+
+## Verification
+Paste real outputs or "OK":
+- [ ] `pnpm run doctor:report` (attach artifacts/doctor-report.md)
+- [ ] `pnpm -w turbo run lint`
+- [ ] `pnpm -w turbo run typecheck`
+- [ ] `pnpm -w turbo run build`
+- [ ] `pnpm -w turbo run test:e2e` (or N/A)
 
 ## Doctor & Quality Checks
 - [ ] I ran `pnpm doctor` locally (no fails)
@@ -13,21 +21,10 @@ Brief description of the changes and why they're needed.
 - [ ] New `.claude/commands/*` files are linked in `CLAUDE.md`
 - [ ] If I intentionally left placeholders, I added them to `.doctor-allowlist.json` (with comment why)
 
-## Safety
-- [ ] `pnpm lint` passes without errors
-- [ ] `pnpm typecheck` passes without errors  
-- [ ] `pnpm build` succeeds
-- [ ] `pnpm test` passes (if tests exist)
-
 ## LLM Guardrails
 - [ ] Used adapters (no vendor SDKs in UI)
 - [ ] No hardcoded hex colors (tokenized Tailwind only)
+- [ ] Updated docs and `llm/context-map.json` if scripts/paths changed
 
-## Testing
-- [ ] Existing tests pass
-- [ ] New tests added for new functionality
-- [ ] Manual testing completed (if applicable)
-
-## Breaking Changes
-- [ ] This PR includes breaking changes
-- [ ] Migration guide provided (if applicable)
+## Breaking changes / Migration
+_None_ (or describe + steps)
