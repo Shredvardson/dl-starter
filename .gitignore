@@ -36,6 +36,9 @@ playwright/.cache/
 !src/**/*.jpeg
 
 # Logs
+*.log
+logs/
+apps/*/dev-server.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -93,8 +96,8 @@ pids
 # Optional REPL history
 .node_repl_history
 
-# TypeScript cache
-*.tsbuildinfo
+# TypeScript incremental cache
+**/*.tsbuildinfo
 !next-env.d.ts
 
 # Storybook

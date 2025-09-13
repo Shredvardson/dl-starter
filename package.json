@@ -38,7 +38,8 @@
     "pr:create": "tsx scripts/create-pr.ts",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish"
+    "changeset:publish": "changeset publish",
+    "clean": "rm -rf .turbo **/*.tsbuildinfo coverage test-results playwright-report 2>/dev/null || true"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
