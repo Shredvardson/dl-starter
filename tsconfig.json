@@ -1,7 +1,8 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["DOM", "DOM.Iterable", "ES6"],
+    "lib": ["DOM", "DOM.Iterable", "ES2017"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,7 +14,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true
-    // rely on tsconfig.base.json for baseUrl + paths to avoid drift
   },
   "include": [],
   "exclude": ["node_modules", ".next", "dist"]
