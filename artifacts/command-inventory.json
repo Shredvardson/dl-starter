@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-13T05:52:41.642Z",
+  "generated": "2025-09-13T06:49:26.785Z",
   "packages": {
     "web": {
       "scripts": {
@@ -45,6 +45,7 @@
         "test": "turbo run test",
         "test:unit": "turbo run test:unit",
         "test:e2e": "turbo run test:e2e --filter=web",
+        "test:e2e:ci": "playwright test apps/web/tests/smoke.spec.ts --config playwright.config.ts",
         "typecheck": "turbo run typecheck",
         "debug": "tsx scripts/debug.ts",
         "debug:sentry": "tsx scripts/debug.ts sentry:check",
@@ -64,7 +65,10 @@
         "git:cleanup-force": "bash scripts/git-workflow.sh cleanup",
         "git:finish": "bash scripts/git-workflow.sh finish-branch",
         "docs:check": "tsx scripts/docs-check.ts",
-        "pr:create": "tsx scripts/create-pr.ts"
+        "pr:create": "tsx scripts/create-pr.ts",
+        "changeset": "changeset",
+        "changeset:version": "changeset version",
+        "changeset:publish": "changeset publish"
       },
       "dir": "."
     }
