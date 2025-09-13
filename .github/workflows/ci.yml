@@ -124,5 +124,5 @@ jobs:
       - name: Unit tests
         run: pnpm --filter=web run test:unit
 
-      - name: E2E tests
-        run: pnpm --filter=web run test:e2e
+      - name: E2E smoke (Playwright)
+        run: pnpm run test:e2e:ci
