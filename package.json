@@ -28,10 +28,13 @@
     "constitution:update": "tsx scripts/update-constitution-checksum.ts",
     "check:react-versions": "node scripts/check-react-versions.mjs",
     "preflight:placeholders": "bash -lc 'PATTERN=\"{{\"; PATTERN+=\"PLACEHOLDER\"; PATTERN+=\"}}\"; ! grep -R \"$PATTERN\" . -n --exclude-dir=node_modules --exclude-dir=.turbo'",
-    "git:cleanup": "bash scripts/cleanup-branches.sh --dry-run",
-    "git:cleanup-force": "bash scripts/cleanup-branches.sh",
-    "git:finish": "bash scripts/cleanup-branches.sh --current",
-    "docs:check": "tsx scripts/docs-check.ts"
+    "git:start": "bash scripts/git-workflow.sh start",
+    "git:status": "bash scripts/git-workflow.sh status",
+    "git:cleanup": "bash scripts/git-workflow.sh cleanup-dry",
+    "git:cleanup-force": "bash scripts/git-workflow.sh cleanup",
+    "git:finish": "bash scripts/git-workflow.sh finish-branch",
+    "docs:check": "tsx scripts/docs-check.ts",
+    "pr:create": "tsx scripts/create-pr.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
