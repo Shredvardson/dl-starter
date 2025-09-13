@@ -35,7 +35,10 @@
     "git:cleanup-force": "bash scripts/git-workflow.sh cleanup",
     "git:finish": "bash scripts/git-workflow.sh finish-branch",
     "docs:check": "tsx scripts/docs-check.ts",
-    "pr:create": "tsx scripts/create-pr.ts"
+    "pr:create": "tsx scripts/create-pr.ts",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
