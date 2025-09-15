@@ -49,13 +49,23 @@ jobs:
           
           echo "Scraping AI review comments from PR #$PR_NUMBER..."
           
-          # Get AI review comment content
-          AI_REVIEW_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
-            --jq '.[] | select(.body | contains("<!-- ai-review:v1 -->")) | .body' 2>/dev/null || echo "")
+          # Get PR head SHA for validation
+          PR_HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          echo "PR head SHA: $PR_HEAD_SHA"
           
-          # Get AI security review comment content
+          # Get AI review comment content with anti-poisoning validation
+          AI_REVIEW_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
+            --jq --arg sha "$PR_HEAD_SHA" '.[] | 
+            select(.user.login == "github-actions[bot]") | 
+            select(.body | contains("<!-- ai-review:v1") and contains($sha)) | 
+            .body' 2>/dev/null | head -1 || echo "")
+          
+          # Get AI security review comment content with anti-poisoning validation
           AI_SEC_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
-            --jq '.[] | select(.body | contains("<!-- ai-sec-review:v1 -->")) | .body' 2>/dev/null || echo "")
+            --jq --arg sha "$PR_HEAD_SHA" '.[] | 
+            select(.user.login == "github-actions[bot]") | 
+            select(.body | contains("<!-- ai-sec-review:v1") and contains($sha)) | 
+            .body' 2>/dev/null | head -1 || echo "")
           
           # Extract and append AI review content
           if [ -n "$AI_REVIEW_CONTENT" ]; then
@@ -77,6 +87,14 @@ jobs:
           if [ -n "$AI_REVIEW_CONTENT" ] || [ -n "$AI_SEC_CONTENT" ]; then
             echo "---" >> artifacts/doctor-report.md
             echo "*AI reviews aggregated by comment-scrape pipeline*" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+          else
+            # Graceful fallback - AI review not available but don't block CI
+            echo "## ℹ️ AI Review Status" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+            echo "AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+            echo "> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment." >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
 

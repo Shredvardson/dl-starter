@@ -51,9 +51,14 @@ jobs:
         CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
         echo "Changed files: $CHANGED_FILES"
         
-        # Post structured comment for doctor aggregation
-        gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'EOF'
-        <!-- ai-sec-review:v1 -->
+        # Check for existing AI security review comment to update (sticky comment behavior)
+        EXISTING_SEC_COMMENT_ID=$(gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+          --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- ai-sec-review:v1")) | .id' \
+          | head -1 2>/dev/null || echo "")
+        
+        # Prepare comment body with anti-poisoning headers
+        SEC_COMMENT_BODY="$(cat <<'EOF'
+        <!-- ai-sec-review:v1 run_id=${{ github.run_id }} sha=${{ github.sha }} -->
         ## 🛡️ AI Security Review (Advisory)
         
         > **Note**: This is an advisory security scan. CodeQL and manual review remain authoritative for security decisions.
@@ -77,6 +82,17 @@ jobs:
         <!-- /ai-sec-review:v1 -->
         EOF
         )"
+        
+        # Either update existing comment or create new one (sticky behavior)
+        if [ -n "$EXISTING_SEC_COMMENT_ID" ]; then
+          echo "Updating existing AI security review comment ID: $EXISTING_SEC_COMMENT_ID"
+          gh api repos/${{ github.repository }}/issues/comments/$EXISTING_SEC_COMMENT_ID \
+            -X PATCH \
+            --field body="$SEC_COMMENT_BODY"
+        else
+          echo "Creating new AI security review comment"
+          gh pr comment ${{ github.event.pull_request.number }} --body "$SEC_COMMENT_BODY"
+        fi
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
