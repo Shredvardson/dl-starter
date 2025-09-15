@@ -50,15 +50,19 @@ When you open a PR:
 **Usage Rules**:
 - Mention-only trigger (never automatic)
 - Pushes to `bots/claude/*` branches only  
-- Blocked paths: `.github/workflows/**`, `scripts/release/**`, `.env*`
-- Allowed paths: `apps/`, `packages/`, `docs/**`
-- Must pass existing doctor/tsc/e2e gates before merge
+- **Non-editable zones**: `.github/workflows/**`, `scripts/release/**`, `.env*`, `**/.env*`
+- **Allowed paths**: `apps/`, `packages/`, `docs/**`
+- **Quality gates**: All bot PRs must pass doctor, tsc, e2e, and human review
+- **Timeout**: 10 minutes max per review to control costs
+- **Case handling**: Accepts `/review`, `/Review`, or `/REVIEW`
 
 ### /security:scan (GitHub Action - Advisory)
 **Trigger**: Automatic on `pull_request` events  
 **Purpose**: AI-powered vulnerability detection with semantic analysis  
 **Scope**: Advisory-first (`fail_on_findings: false`), CodeQL remains blocker  
 **Output**: Inline comments + aggregated in doctor report
+**Timeout**: 10 minutes max per scan
+**Permissions**: Read-only, comment-only (cannot push code)
 
 **Security Focus Areas**:
 - Input validation vulnerabilities
