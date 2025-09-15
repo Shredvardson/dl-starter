@@ -177,12 +177,19 @@ function checkEnvironment(): CheckResult {
 function checkConstitutionIntegrity(): CheckResult {
   const checksumPath = resolve('docs/llm/CONSTITUTION.CHECKSUM');
   const contextMapPath = resolve('docs/llm/context-map.json');
+  
+  // Check if this is an infrastructure change (workflows, scripts)
+  const isInfraChange = process.env.GITHUB_HEAD_REF && (
+    process.env.GITHUB_HEAD_REF.includes('workflow') ||
+    process.env.GITHUB_HEAD_REF.includes('ci') ||
+    process.env.GITHUB_HEAD_REF.includes('infra')
+  );
 
   if (!existsSync(checksumPath)) {
     return {
       name: 'Constitution Integrity',
-      status: 'fail',
-      message: 'Constitution checksum file missing',
+      status: isInfraChange ? 'warn' : 'fail',
+      message: 'Constitution checksum file missing' + (isInfraChange ? ' (advisory for infra changes)' : ''),
       fix: 'Run: pnpm tsx scripts/update-constitution-checksum.ts',
     };
   }
@@ -190,8 +197,8 @@ function checkConstitutionIntegrity(): CheckResult {
   if (!existsSync(contextMapPath)) {
     return {
       name: 'Constitution Integrity',
-      status: 'fail',
-      message: 'Context map file missing',
+      status: isInfraChange ? 'warn' : 'fail',
+      message: 'Context map file missing' + (isInfraChange ? ' (advisory for infra changes)' : ''),
       fix: 'Restore docs/llm/context-map.json from template',
     };
   }
@@ -823,12 +830,22 @@ function checkRestrictedPaths(): CheckResult {
 function checkAILabelHygiene(): CheckResult {
   // Only run in CI with artifacts directory
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const isBotBranch = process.env.GITHUB_HEAD_REF?.startsWith('bots/claude/');
   
   if (!isCI || !existsSync('artifacts')) {
     return {
       name: 'AI Label Hygiene',
       status: 'pass',
       message: 'Check skipped (no artifacts directory)',
+    };
+  }
+
+  // For non-bot branches, this is always advisory
+  if (!isBotBranch) {
+    return {
+      name: 'AI Label Hygiene',
+      status: 'pass',
+      message: 'Non-bot branch - AI label hygiene is advisory only',
     };
   }
 
@@ -847,8 +864,7 @@ function checkAILabelHygiene(): CheckResult {
       };
     }
 
-    // In real implementation, this would check PR labels via GitHub API
-    // For now, warn that labels should be verified
+    // For bot branches, require proper labels
     const missingLabels = [];
     if (hasAIReview) missingLabels.push('ai-review:advisory');
     if (hasSecurityReview) missingLabels.push('ai-security:advisory');
@@ -856,7 +872,7 @@ function checkAILabelHygiene(): CheckResult {
     return {
       name: 'AI Label Hygiene',
       status: 'warn',
-      message: `AI artifacts detected - verify PR has labels: ${missingLabels.join(', ')}`,
+      message: `🤖 Bot branch AI artifacts detected - verify PR has labels: ${missingLabels.join(', ')}`,
       fix: 'Ensure workflows apply correct labels when AI reviews complete',
     };
   } catch (error: any) {

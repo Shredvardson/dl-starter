@@ -34,13 +34,16 @@ jobs:
       - name: Create artifacts directory
         run: mkdir -p artifacts
 
+      - name: Init doctor report
+        run: echo "# Doctor Report" > artifacts/doctor-report.md
+
       - name: Run doctor
         env:
           DOCTOR_SILENT: 1
         run: pnpm run doctor:report
 
       - name: Scrape AI Reviews from PR Comments
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

@@ -31,7 +31,25 @@ echo "✅ Base ref '$BASE' successfully fetched and verified"
 
 # If not a bot branch, exit cleanly
 if [[ "${GITHUB_HEAD_REF:-}" != bots/claude/* ]]; then 
-  echo "✅ Non-bot branch, skipping restricted paths check"
+  echo "ℹ️ Non-bot branch detected: ${GITHUB_HEAD_REF:-HEAD}"
+  echo "✅ Restricted paths check is advisory for non-bot branches"
+  
+  # Still run the check but only warn, don't fail
+  if CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>/dev/null); then
+    if [[ -n "$CHANGED" ]]; then
+      echo "Changed files in non-bot branch:"
+      echo "$CHANGED" | sed 's/^/  - /'
+      
+      # Check patterns but only warn
+      for pat in "${RESTRICTED[@]}"; do
+        regex_pat=$(echo "$pat" | sed -e 's/\*\*/.*/g' -e 's/\*/[^\/]*/g')
+        if echo "$CHANGED" | grep -E "^${regex_pat}$" >/dev/null 2>&1; then
+          echo "ℹ️ ADVISORY: Non-bot branch modified restricted pattern '$pat'"
+          echo "   (This would block a bot branch but is allowed for human PRs)"
+        fi
+      done
+    fi
+  fi
   exit 0
 fi
 
