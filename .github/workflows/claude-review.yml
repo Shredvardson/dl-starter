@@ -79,6 +79,8 @@ COOLDOWN_EOF
           api.github.com:443
           github.com:443
           api.anthropic.com:443
+          actions.githubusercontent.com:443
+          token.actions.githubusercontent.com:443
           uploads.github.com:443
           objects.githubusercontent.com:443
           pipelines.actions.githubusercontent.com:443
@@ -119,7 +121,7 @@ COOLDOWN_EOF
         echo "🤖 Simulating Claude AI Review..."
         
         # Check path restrictions (using environment variable to prevent injection)
-        if echo "$COMMENT_BODY" | grep -i -E "workflow|\\\.env|release"; then
+        if echo "$COMMENT_BODY" | grep -Ei '\.github/workflows/|(^|[^A-Za-z0-9_])\.env([^A-Za-z0-9_]|$)|(^|[[:space:]])scripts/release(/|\.ya?ml|[[:space:]]|$)'; then
           echo "❌ Request violates path restrictions"
           exit 1
         fi
@@ -186,25 +188,27 @@ COOLDOWN_EOF
         OUTPUT_TOKENS=756
         COST_USD="0.0174"
         
-        echo "" >> artifacts/doctor-report.md
-        echo "## 🤖 AI Review (Advisory)" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "**Generated:** $RESPONSE_TIME" >> artifacts/doctor-report.md
-        echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
-        echo "**Trigger:** @claude /review" >> artifacts/doctor-report.md
-        echo "**Comment Time:** $TRIGGER_TIME" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "### 📊 Cost & Model Telemetry" >> artifacts/doctor-report.md
-        echo "- **Model:** $MODEL_NAME" >> artifacts/doctor-report.md
-        echo "- **Input Tokens:** $INPUT_TOKENS" >> artifacts/doctor-report.md
-        echo "- **Output Tokens:** $OUTPUT_TOKENS" >> artifacts/doctor-report.md
-        echo "- **Estimated Cost:** \$$COST_USD USD" >> artifacts/doctor-report.md
-        echo "- **Triggered:** $TRIGGER_TIME" >> artifacts/doctor-report.md  
-        echo "- **Completed:** $RESPONSE_TIME" >> artifacts/doctor-report.md
-        echo "- **Signal Quality:** ⚠️ _Tag as ✅ useful / ⚠️ noisy in PR comments_" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "> AI review completed. See PR comments for detailed feedback." >> artifacts/doctor-report.md
-        echo "> This is advisory only - human review and quality gates remain authoritative." >> artifacts/doctor-report.md
+        cat >> artifacts/doctor-report.md <<EOF
+
+## 🤖 AI Review (Advisory)
+
+**Generated:** $RESPONSE_TIME  
+**PR:** #${{ github.event.issue.number }}  
+**Trigger:** @claude /review  
+**Comment Time:** $TRIGGER_TIME
+
+### 📊 Cost & Model Telemetry
+- **Model:** $MODEL_NAME
+- **Input Tokens:** $INPUT_TOKENS
+- **Output Tokens:** $OUTPUT_TOKENS
+- **Estimated Cost:** \$COST_USD USD
+- **Triggered:** $TRIGGER_TIME
+- **Completed:** $RESPONSE_TIME
+- **Signal Quality:** ⚠️ _Tag as ✅ useful / ⚠️ noisy in PR comments_
+
+> AI review completed. See PR comments for detailed feedback.  
+> This is advisory only - human review and quality gates remain authoritative.
+EOF
         
     - name: Apply AI Review Label
       if: success() && steps.cooldown.outputs.cooldown_active != 'true'
