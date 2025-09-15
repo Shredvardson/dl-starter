@@ -106,3 +106,6 @@ When you open a PR:
 ## References
 - CONTRIBUTING.md · RELEASING.md · SECURITY.md
 - docs/recipes/{auth,db,env-setup,stripe,shadcn}.md
+
+## Testing Notes
+This implementation has been tested with GPT-5's 3-part smoke test sequence for operational validation.
