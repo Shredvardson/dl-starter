@@ -84,16 +84,25 @@ jobs:
           
           **Integration**: Results appended to [doctor report artifacts](../artifacts/doctor-report.md)
 
-    - name: Append to Doctor Report
+    - name: Capture Metrics & Append to Doctor Report
       if: always()
       run: |
         mkdir -p artifacts
+        TRIGGER_TIME="${{ github.event.comment.created_at }}"
+        RESPONSE_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
         echo "" >> artifacts/doctor-report.md
         echo "## 🤖 AI Review (Advisory)" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md
-        echo "**Generated:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> artifacts/doctor-report.md
+        echo "**Generated:** $RESPONSE_TIME" >> artifacts/doctor-report.md
         echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
         echo "**Trigger:** @claude /review" >> artifacts/doctor-report.md
+        echo "**Comment Time:** $TRIGGER_TIME" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "### 📊 Metrics" >> artifacts/doctor-report.md
+        echo "- **Triggered:** $TRIGGER_TIME" >> artifacts/doctor-report.md  
+        echo "- **Completed:** $RESPONSE_TIME" >> artifacts/doctor-report.md
+        echo "- **Signal Quality:** ⚠️ _Tag as ✅ useful / ⚠️ noisy in PR comments_" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md
         echo "> AI review completed. See PR comments for detailed feedback." >> artifacts/doctor-report.md
         echo "> This is advisory only - human review and quality gates remain authoritative." >> artifacts/doctor-report.md

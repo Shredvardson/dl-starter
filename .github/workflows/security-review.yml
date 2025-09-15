@@ -107,16 +107,23 @@ jobs:
           **/.next/**
           **/dist/**
           
-    - name: Append to Doctor Report
+    - name: Capture Metrics & Append to Doctor Report
       if: always()
       run: |
         mkdir -p artifacts
+        SCAN_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
         echo "" >> artifacts/doctor-report.md
         echo "## 🛡️ AI Security Review (Advisory)" >> artifacts/doctor-report.md  
         echo "" >> artifacts/doctor-report.md
-        echo "**Generated:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> artifacts/doctor-report.md
+        echo "**Generated:** $SCAN_TIME" >> artifacts/doctor-report.md
         echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
         echo "**Mode:** Advisory (non-blocking)" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "### 📊 Security Scan Metrics" >> artifacts/doctor-report.md
+        echo "- **Completed:** $SCAN_TIME" >> artifacts/doctor-report.md
+        echo "- **Scope:** Apps and packages (code files only)" >> artifacts/doctor-report.md
+        echo "- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md
         echo "### Security Analysis Completed" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md

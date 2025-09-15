@@ -777,6 +777,41 @@ function checkEnvExampleSafety(): CheckResult {
   };
 }
 
+function checkRestrictedPaths(): CheckResult {
+  // Only run this check in CI or if explicitly requested
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  const isBotBranch = process.env.GITHUB_HEAD_REF?.startsWith('bots/claude/');
+  
+  if (!isCI || !isBotBranch) {
+    return {
+      name: 'Restricted Paths',
+      status: 'pass',
+      message: 'Check skipped (not a bot branch in CI)',
+    };
+  }
+
+  try {
+    // Run the restricted paths check script
+    execSync('bash scripts/check-restricted-paths.sh', { 
+      stdio: 'pipe',
+      env: { ...process.env }
+    });
+    
+    return {
+      name: 'Restricted Paths',
+      status: 'pass',
+      message: '🤖 Bot branch respects path restrictions',
+    };
+  } catch (error: any) {
+    return {
+      name: 'Restricted Paths',
+      status: 'fail',
+      message: 'Bot branch violated restricted path policy',
+      fix: 'Bots cannot modify .github/workflows/**, scripts/release/**, or .env* files',
+    };
+  }
+}
+
 function checkReferences(): CheckResult[] {
   const results: CheckResult[] = [];
   
@@ -831,6 +866,7 @@ function main() {
     ...checkCommandDocs(),
     ...checkReferences(),
     checkEnvExampleSafety(),
+    checkRestrictedPaths(),
   ];
 
   if (isReportMode && reportPath) {
