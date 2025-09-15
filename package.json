@@ -36,7 +36,7 @@
     "git:finish": "bash scripts/git-workflow.sh finish-branch",
     "docs:check": "tsx scripts/docs-check.ts",
     "pr:create": "tsx scripts/create-pr.ts",
-    "clean": "rm -rf .turbo **/*.tsbuildinfo coverage test-results playwright-report 2>/dev/null || true"
+    "clean": "rm -rf .turbo coverage test-results playwright-report 2>/dev/null || true; find . -type f -name '*.tsbuildinfo' -print -delete 2>/dev/null || true"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",

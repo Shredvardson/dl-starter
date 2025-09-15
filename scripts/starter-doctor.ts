@@ -803,10 +803,18 @@ function checkRestrictedPaths(): CheckResult {
       message: '🤖 Bot branch respects path restrictions',
     };
   } catch (error: any) {
+    const details =
+      (error?.stderr?.toString?.() || error?.stdout?.toString?.() || '')
+        .split('\n')
+        .slice(-5)
+        .join(' ')
+        .trim();
     return {
       name: 'Restricted Paths',
       status: 'fail',
-      message: 'Bot branch violated restricted path policy',
+      message: details
+        ? `Bot branch violated restricted path policy: ${details}`
+        : 'Bot branch violated restricted path policy',
       fix: 'Bots cannot modify .github/workflows/**, scripts/release/**, or .env* files',
     };
   }

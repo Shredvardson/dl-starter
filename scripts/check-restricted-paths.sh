@@ -55,7 +55,7 @@ echo "$CHANGED" | sed 's/^/  - /'
 # Check each restricted pattern
 for pat in "${RESTRICTED[@]}"; do
   # Convert glob pattern to regex for grep
-  regex_pat=$(echo "$pat" | sed 's/\*\*/.*/' | sed 's/\*/[^\/]*/')
+  regex_pat=$(echo "$pat" | sed -e 's/\*\*/.*/g' -e 's/\*/[^\/]*/g')
   
   if echo "$CHANGED" | grep -E "^${regex_pat}$" >/dev/null 2>&1; then
     echo "❌ RESTRICTED PATH VIOLATION: Bot branch modified files matching '$pat'"
