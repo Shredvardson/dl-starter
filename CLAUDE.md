@@ -110,8 +110,8 @@ When you open a PR:
 - Advisory-first approach with measurable false-positive tracking
 
 ## References
-- CONTRIBUTING.md · RELEASING.md · SECURITY.md
-- docs/recipes/{auth,db,env-setup,stripe,shadcn}.md
+- [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [SECURITY.md](SECURITY.md)
+- [Auth Recipe](docs/recipes/auth.md) · [Database Recipe](docs/recipes/db.md) · [Environment Setup](docs/recipes/env-setup.md) · [Stripe Recipe](docs/recipes/stripe.md) · [ShadCN Recipe](docs/recipes/shadcn.md)
 
 ## Testing Notes
 This implementation has been tested with GPT-5's 3-part smoke test sequence for operational validation.

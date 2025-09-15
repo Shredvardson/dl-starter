@@ -54,11 +54,14 @@ jobs:
           echo "⏳ Cooldown active - $REASON"
           echo "cooldown_active=true" >> $GITHUB_OUTPUT
           
-          gh pr comment ${{ github.event.issue.number }} --body "⏳ **AI Review Cooldown**
+          gh pr comment ${{ github.event.issue.number }} --body "$(cat <<'COOLDOWN_EOF'
+⏳ **AI Review Cooldown**
 
 > $REASON. Please wait before requesting again to manage costs and avoid spam.
 
-*This cooldown helps ensure efficient resource usage during the evaluation period.*"
+*This cooldown helps ensure efficient resource usage during the evaluation period.*
+COOLDOWN_EOF
+)"
         else
           echo "✅ Cooldown clear - proceeding with AI review"
           echo "cooldown_active=false" >> $GITHUB_OUTPUT

@@ -12,7 +12,6 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  security-events: write
 
 jobs:
   security-review:
@@ -40,6 +39,8 @@ jobs:
           codeload.github.com:443
           nodejs.org:443
           registry.npmjs.org:443
+          avatars.githubusercontent.com:443
+          github-releases.githubusercontent.com:443
 
     - name: Checkout code
       uses: actions/checkout@v4
@@ -52,7 +53,9 @@ jobs:
         echo "🛡️ Simulating AI Security Review..."
         
         # Check if there are code changes (for docs-only this should be minimal)
-        CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+        # Use PR base SHA for proper diff comparison
+        BASE_SHA="${{ github.event.pull_request.base.sha }}"
+        CHANGED_FILES=$(git diff --name-only "$BASE_SHA...HEAD")
         echo "Changed files: $CHANGED_FILES"
         
         # Check for existing AI security review comment to update (sticky comment behavior)
