@@ -13,10 +13,12 @@ jobs:
   claude-review:
     if: |
       github.event.issue.pull_request && 
-      contains(tolower(github.event.comment.body), '@claude') && 
-      contains(tolower(github.event.comment.body), '/review') && 
+      (contains(github.event.comment.body, '@claude') || contains(github.event.comment.body, '@Claude')) && 
+      (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/Review')) && 
       github.event.comment.user.type != 'Bot' && 
-      contains('OWNER,MEMBER,COLLABORATOR', github.event.comment.author_association) &&
+      (github.event.comment.author_association == 'OWNER' || 
+       github.event.comment.author_association == 'MEMBER' || 
+       github.event.comment.author_association == 'COLLABORATOR') &&
       vars.CLAUDE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -39,7 +41,7 @@ jobs:
         
         # Also check for duplicate /review comments from same user within cooldown
         DUPLICATE_REQUESTS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
-          --jq ".[] | select(.user.login == \"${{ github.event.comment.user.login }}\") | select(.body | contains(\"@claude\") and contains(\"/review\")) | select(.created_at > \"$CUTOFF_TIME\") | .created_at" \
+          --jq ".[] | select(.user.login == \"${{ github.event.comment.user.login }}\") | select(.body | test(\"@[Cc]laude\") and test(\"/[Rr]eview\")) | select(.created_at > \"$CUTOFF_TIME\") | .created_at" \
           | wc -l)
         
         if [[ $RECENT_REVIEWS -gt 0 ]] || [[ $DUPLICATE_REQUESTS -gt 1 ]]; then

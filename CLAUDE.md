@@ -56,7 +56,7 @@ When you open a PR:
 - **Allowed paths**: `apps/`, `packages/`, `docs/**`
 - **Quality gates**: All bot PRs must pass doctor, tsc, e2e, and human review
 - **Timeout**: 10 minutes max per review to control costs
-- **Case handling**: Accepts `/review`, `/Review`, or `/REVIEW`
+- **Case handling**: Accepts `@claude` or `@Claude` with `/review` or `/Review`
 
 ### /security:scan (GitHub Action - Advisory)
 **Trigger**: Automatic on `pull_request` events  
