@@ -84,7 +84,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: refs/pull/${{ github.event.issue.number }}/head
 
     - name: Setup Node.js
       if: steps.cooldown.outputs.cooldown_active != 'true'
@@ -114,9 +114,13 @@ jobs:
           --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- ai-review:v1")) | .id' \
           | head -1 2>/dev/null || echo "")
         
+        # Get actual PR head SHA after checkout
+        PR_HEAD_SHA=$(git rev-parse HEAD)
+        echo "PR head SHA: $PR_HEAD_SHA"
+        
         # Prepare comment body with anti-poisoning headers
         COMMENT_BODY="$(cat <<'EOF'
-        <!-- ai-review:v1 run_id=${{ github.run_id }} sha=${{ github.sha }} -->
+        <!-- ai-review:v1 run_id=${{ github.run_id }} sha=PR_HEAD_SHA_PLACEHOLDER -->
         ## 🤖 AI Review (Advisory)
         
         **Documentation Update Analysis:**
@@ -137,6 +141,9 @@ jobs:
         <!-- /ai-review:v1 -->
         EOF
         )"
+        
+        # Replace SHA placeholder with actual value
+        COMMENT_BODY=$(echo "$COMMENT_BODY" | sed "s/PR_HEAD_SHA_PLACEHOLDER/$PR_HEAD_SHA/g")
         
         # Either update existing comment or create new one (sticky behavior)
         if [ -n "$EXISTING_COMMENT_ID" ]; then
