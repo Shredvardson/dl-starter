@@ -104,6 +104,13 @@ jobs:
         echo "> **Authority**: CodeQL and human review remain the authoritative security gates." >> artifacts/doctor-report.md
         echo "> AI review provides additional semantic analysis for vulnerability detection." >> artifacts/doctor-report.md
         
+    - name: Apply Security Review Label
+      if: success()
+      run: |
+        gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-security:advisory"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Upload Security Artifacts
       if: always()
       uses: actions/upload-artifact@v4

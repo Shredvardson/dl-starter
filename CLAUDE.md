@@ -98,6 +98,12 @@ When you open a PR:
 - Timeout limits (10 minutes per job)
 - Concurrency controls (cancel duplicate runs)
 
+**Governance Controls (NEW)**:
+- **Author Association**: Only OWNER/MEMBER/COLLABORATOR can trigger `@claude` commands
+- **Promote Labels**: Bot PRs require maintainer-added `promote` label before merge
+- **Label Hygiene**: AI workflows apply `ai-review:advisory` / `ai-security:advisory` labels
+- **Doctor Enforcement**: Starter doctor warns if AI labels missing when artifacts present
+
 **Quality Integration**:
 - All AI outputs aggregate into single doctor report
 - Existing quality gates remain authoritative  

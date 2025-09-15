@@ -11,7 +11,13 @@ permissions:
 
 jobs:
   claude-review:
-    if: github.event.issue.pull_request && contains(tolower(github.event.comment.body), '@claude') && contains(tolower(github.event.comment.body), '/review') && github.event.comment.user.type != 'Bot' && vars.CLAUDE_ENABLED == 'true'
+    if: |
+      github.event.issue.pull_request && 
+      contains(tolower(github.event.comment.body), '@claude') && 
+      contains(tolower(github.event.comment.body), '/review') && 
+      github.event.comment.user.type != 'Bot' && 
+      contains('OWNER,MEMBER,COLLABORATOR', github.event.comment.author_association) &&
+      vars.CLAUDE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
@@ -104,6 +110,13 @@ jobs:
         echo "" >> artifacts/doctor-report.md
         echo "> AI review completed. See PR comments for detailed feedback." >> artifacts/doctor-report.md
         echo "> This is advisory only - human review and quality gates remain authoritative." >> artifacts/doctor-report.md
+        
+    - name: Apply AI Review Label
+      if: success()
+      run: |
+        gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-review:advisory"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Upload Doctor Artifacts
       if: always()

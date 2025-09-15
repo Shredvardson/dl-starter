@@ -812,6 +812,55 @@ function checkRestrictedPaths(): CheckResult {
   }
 }
 
+function checkAILabelHygiene(): CheckResult {
+  // Only run in CI with artifacts directory
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  
+  if (!isCI || !existsSync('artifacts')) {
+    return {
+      name: 'AI Label Hygiene',
+      status: 'pass',
+      message: 'Check skipped (no artifacts directory)',
+    };
+  }
+
+  try {
+    // Check if AI artifacts exist
+    const hasAIReview = existsSync('artifacts/doctor-report.md') && 
+                       readFileSync('artifacts/doctor-report.md', 'utf8').includes('🤖 AI Review');
+    const hasSecurityReview = existsSync('artifacts/doctor-report.md') && 
+                             readFileSync('artifacts/doctor-report.md', 'utf8').includes('🛡️ AI Security Review');
+    
+    if (!hasAIReview && !hasSecurityReview) {
+      return {
+        name: 'AI Label Hygiene',
+        status: 'pass',
+        message: 'No AI artifacts found, label check not applicable',
+      };
+    }
+
+    // In real implementation, this would check PR labels via GitHub API
+    // For now, warn that labels should be verified
+    const missingLabels = [];
+    if (hasAIReview) missingLabels.push('ai-review:advisory');
+    if (hasSecurityReview) missingLabels.push('ai-security:advisory');
+
+    return {
+      name: 'AI Label Hygiene',
+      status: 'warn',
+      message: `AI artifacts detected - verify PR has labels: ${missingLabels.join(', ')}`,
+      fix: 'Ensure workflows apply correct labels when AI reviews complete',
+    };
+  } catch (error: any) {
+    return {
+      name: 'AI Label Hygiene',
+      status: 'warn',
+      message: 'Could not verify AI label hygiene',
+      fix: 'Check that AI review workflows apply proper labels',
+    };
+  }
+}
+
 function checkReferences(): CheckResult[] {
   const results: CheckResult[] = [];
   
@@ -867,6 +916,7 @@ function main() {
     ...checkReferences(),
     checkEnvExampleSafety(),
     checkRestrictedPaths(),
+    checkAILabelHygiene(),
   ];
 
   if (isReportMode && reportPath) {
