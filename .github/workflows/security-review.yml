@@ -36,6 +36,10 @@ jobs:
           uploads.github.com:443
           objects.githubusercontent.com:443
           pipelines.actions.githubusercontent.com:443
+          raw.githubusercontent.com:443
+          codeload.github.com:443
+          nodejs.org:443
+          registry.npmjs.org:443
 
     - name: Checkout code
       uses: actions/checkout@v4
