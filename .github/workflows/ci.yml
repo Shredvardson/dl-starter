@@ -70,7 +70,7 @@ jobs:
           # Extract and append AI review content
           if [ -n "$AI_REVIEW_CONTENT" ]; then
             echo "Found AI review comment, extracting content..."
-            echo "$AI_REVIEW_CONTENT" | sed -n '/<!-- ai-review:v1 -->/,/<!-- \/ai-review:v1 -->/p' | \
+            echo "$AI_REVIEW_CONTENT" | sed -n '/<!-- ai-review:v1.*-->/,/<!-- \/ai-review:v1 -->/p' | \
               sed '1d;$d' >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
@@ -78,7 +78,7 @@ jobs:
           # Extract and append AI security review content
           if [ -n "$AI_SEC_CONTENT" ]; then
             echo "Found AI security review comment, extracting content..."
-            echo "$AI_SEC_CONTENT" | sed -n '/<!-- ai-sec-review:v1 -->/,/<!-- \/ai-sec-review:v1 -->/p' | \
+            echo "$AI_SEC_CONTENT" | sed -n '/<!-- ai-sec-review:v1.*-->/,/<!-- \/ai-sec-review:v1 -->/p' | \
               sed '1d;$d' >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
