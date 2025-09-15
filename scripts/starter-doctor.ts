@@ -178,12 +178,8 @@ function checkConstitutionIntegrity(): CheckResult {
   const checksumPath = resolve('docs/llm/CONSTITUTION.CHECKSUM');
   const contextMapPath = resolve('docs/llm/context-map.json');
   
-  // Check if this is an infrastructure change (workflows, scripts)
-  const isInfraChange = process.env.GITHUB_HEAD_REF && (
-    process.env.GITHUB_HEAD_REF.includes('workflow') ||
-    process.env.GITHUB_HEAD_REF.includes('ci') ||
-    process.env.GITHUB_HEAD_REF.includes('infra')
-  );
+  // Check if this is an infrastructure change (based on file detection)
+  const isInfraChange = process.env.IS_INFRA_CHANGE === 'true';
 
   if (!existsSync(checksumPath)) {
     return {
