@@ -22,6 +22,7 @@ if ! git fetch --depth=1 origin "$BASE_REF_NAME" 2>/dev/null; then
 fi
 
 # Verify base ref exists after fetch
+BASE="origin/${GITHUB_BASE_REF:-$BASE_REF_NAME}"
 if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   echo "❌ Base ref '$BASE' not found after fetch - security check failed"
   exit 1
@@ -29,9 +30,10 @@ fi
 
 echo "✅ Base ref '$BASE' successfully fetched and verified"
 
-# If not a bot branch, exit cleanly
-if [[ "${GITHUB_HEAD_REF:-}" != bots/claude/* ]]; then 
-  echo "ℹ️ Non-bot branch detected: ${GITHUB_HEAD_REF:-HEAD}"
+# If not a bot branch, exit cleanly (with fallback for local runs)
+HEAD_REF_DETECTED="${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '')}"
+if [[ "$HEAD_REF_DETECTED" != bots/claude/* ]]; then 
+  echo "ℹ️ Non-bot branch detected: $HEAD_REF_DETECTED"
   echo "✅ Restricted paths check is advisory for non-bot branches"
   
   # Still run the check but only warn, don't fail
@@ -40,14 +42,19 @@ if [[ "${GITHUB_HEAD_REF:-}" != bots/claude/* ]]; then
       echo "Changed files in non-bot branch:"
       echo "$CHANGED" | sed 's/^/  - /'
       
-      # Check patterns but only warn
-      for pat in "${RESTRICTED[@]}"; do
-        regex_pat=$(echo "$pat" | sed -e 's/\*\*/.*/g' -e 's/\*/[^\/]*/g')
-        if echo "$CHANGED" | grep -E "^${regex_pat}$" >/dev/null 2>&1; then
-          echo "ℹ️ ADVISORY: Non-bot branch modified restricted pattern '$pat'"
-          echo "   (This would block a bot branch but is allowed for human PRs)"
+      # Check patterns but only warn (using safe bash pattern matching)
+      shopt -s globstar
+      while IFS= read -r file; do
+        if [[ -n "$file" ]]; then
+          for pat in "${RESTRICTED[@]}"; do
+            if [[ "$file" == $pat ]]; then
+              echo "ℹ️ ADVISORY: Non-bot branch modified restricted pattern '$pat'"
+              echo "   File: $file"
+              echo "   (This would block a bot branch but is allowed for human PRs)"
+            fi
+          done
         fi
-      done
+      done <<< "$CHANGED"
     fi
   fi
   exit 0
@@ -70,20 +77,26 @@ fi
 echo "Changed files:"
 echo "$CHANGED" | sed 's/^/  - /'
 
-# Check each restricted pattern
-for pat in "${RESTRICTED[@]}"; do
-  # Convert glob pattern to regex for grep
-  regex_pat=$(echo "$pat" | sed -e 's/\*\*/.*/g' -e 's/\*/[^\/]*/g')
-  
-  if echo "$CHANGED" | grep -E "^${regex_pat}$" >/dev/null 2>&1; then
-    echo "❌ RESTRICTED PATH VIOLATION: Bot branch modified files matching '$pat'"
-    echo "   This violates security policy - bots cannot modify:"
-    echo "   - CI/CD workflows (.github/workflows/**)"
-    echo "   - Release scripts (scripts/release/**)" 
-    echo "   - Environment files (.env*, **/.env*)"
-    exit 1
+# Enable globstar for ** patterns
+shopt -s globstar
+
+# Check each changed file against restricted patterns
+while IFS= read -r file; do
+  if [[ -n "$file" ]]; then
+    for pat in "${RESTRICTED[@]}"; do
+      # Use bash pattern matching instead of unsafe regex conversion
+      if [[ "$file" == $pat ]]; then
+        echo "❌ RESTRICTED PATH VIOLATION: Bot branch modified files matching '$pat'"
+        echo "   File: $file"
+        echo "   This violates security policy - bots cannot modify:"
+        echo "   - CI/CD workflows (.github/workflows/**)"
+        echo "   - Release scripts (scripts/release/**)" 
+        echo "   - Environment files (.env*, **/.env*)"
+        exit 1
+      fi
+    done
   fi
-done
+done <<< "$CHANGED"
 
 echo "✅ No restricted paths touched by bot branch"
 echo "🤖 Bot modifications are within allowed scope"
