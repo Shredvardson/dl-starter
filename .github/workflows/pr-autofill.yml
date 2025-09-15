@@ -24,7 +24,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Patch PR body if missing/placeholder
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const body = context.payload.pull_request.body || "";
