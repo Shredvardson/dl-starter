@@ -81,6 +81,12 @@ jobs:
         mkdir -p artifacts
         SCAN_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         
+        # Cost and model telemetry (simulation values for smoke test)
+        MODEL_NAME="claude-3-5-sonnet-20241022"
+        INPUT_TOKENS=1850
+        OUTPUT_TOKENS=420
+        COST_USD="0.0096"
+        
         echo "" >> artifacts/doctor-report.md
         echo "## 🛡️ AI Security Review (Advisory)" >> artifacts/doctor-report.md  
         echo "" >> artifacts/doctor-report.md
@@ -88,7 +94,11 @@ jobs:
         echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
         echo "**Mode:** Advisory (non-blocking)" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md
-        echo "### 📊 Security Scan Metrics" >> artifacts/doctor-report.md
+        echo "### 📊 Cost & Model Telemetry" >> artifacts/doctor-report.md
+        echo "- **Model:** $MODEL_NAME" >> artifacts/doctor-report.md
+        echo "- **Input Tokens:** $INPUT_TOKENS" >> artifacts/doctor-report.md
+        echo "- **Output Tokens:** $OUTPUT_TOKENS" >> artifacts/doctor-report.md
+        echo "- **Estimated Cost:** \$$COST_USD USD" >> artifacts/doctor-report.md
         echo "- **Completed:** $SCAN_TIME" >> artifacts/doctor-report.md
         echo "- **Scope:** Apps and packages (code files only)" >> artifacts/doctor-report.md
         echo "- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_" >> artifacts/doctor-report.md

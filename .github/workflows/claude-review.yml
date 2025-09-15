@@ -25,7 +25,36 @@ jobs:
       cancel-in-progress: true
     
     steps:
+    - name: Check Cooldown Period
+      id: cooldown
+      run: |
+        # Check for recent runs (3-5 min cooldown)
+        COOLDOWN_MINUTES=4
+        CUTOFF_TIME=$(date -d "$COOLDOWN_MINUTES minutes ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Look for recent AI review comments as cooldown marker
+        RECENT_REVIEWS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+          --jq ".[] | select(.body | contains(\"🤖 AI Review (Advisory)\")) | select(.created_at > \"$CUTOFF_TIME\") | .created_at" \
+          | wc -l)
+        
+        if [[ $RECENT_REVIEWS -gt 0 ]]; then
+          echo "⏳ Cooldown active - AI review ran within last $COOLDOWN_MINUTES minutes"
+          echo "cooldown_active=true" >> $GITHUB_OUTPUT
+          
+          gh pr comment ${{ github.event.pull_request.number }} --body "⏳ **AI Review Cooldown**
+
+> AI review was recently triggered. Please wait $COOLDOWN_MINUTES minutes between requests to manage costs and avoid spam.
+
+*This cooldown helps ensure efficient resource usage during the evaluation period.*"
+        else
+          echo "✅ Cooldown clear - proceeding with AI review"
+          echo "cooldown_active=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Harden Runner
+      if: steps.cooldown.outputs.cooldown_active != 'true'
       uses: step-security/harden-runner@v2
       with:
         disable-sudo: true
@@ -36,6 +65,7 @@ jobs:
           api.anthropic.com:443
 
     - name: Checkout PR
+      if: steps.cooldown.outputs.cooldown_active != 'true'
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -43,6 +73,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Setup Node.js
+      if: steps.cooldown.outputs.cooldown_active != 'true'
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -50,9 +81,11 @@ jobs:
         cache-dependency-path: package-lock.json
 
     - name: Install dependencies
+      if: steps.cooldown.outputs.cooldown_active != 'true'
       run: npm ci
 
     - name: Simulate Claude Code Review (Smoke Test)
+      if: steps.cooldown.outputs.cooldown_active != 'true'
       run: |
         echo "🤖 Simulating Claude AI Review..."
         
@@ -89,11 +122,17 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Capture Metrics & Append to Doctor Report
-      if: always()
+      if: always() && steps.cooldown.outputs.cooldown_active != 'true'
       run: |
         mkdir -p artifacts
         TRIGGER_TIME="${{ github.event.comment.created_at }}"
         RESPONSE_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Cost and model telemetry (simulation values for smoke test)
+        MODEL_NAME="claude-3-5-sonnet-20241022"
+        INPUT_TOKENS=2840
+        OUTPUT_TOKENS=756
+        COST_USD="0.0174"
         
         echo "" >> artifacts/doctor-report.md
         echo "## 🤖 AI Review (Advisory)" >> artifacts/doctor-report.md
@@ -103,7 +142,11 @@ jobs:
         echo "**Trigger:** @claude /review" >> artifacts/doctor-report.md
         echo "**Comment Time:** $TRIGGER_TIME" >> artifacts/doctor-report.md
         echo "" >> artifacts/doctor-report.md
-        echo "### 📊 Metrics" >> artifacts/doctor-report.md
+        echo "### 📊 Cost & Model Telemetry" >> artifacts/doctor-report.md
+        echo "- **Model:** $MODEL_NAME" >> artifacts/doctor-report.md
+        echo "- **Input Tokens:** $INPUT_TOKENS" >> artifacts/doctor-report.md
+        echo "- **Output Tokens:** $OUTPUT_TOKENS" >> artifacts/doctor-report.md
+        echo "- **Estimated Cost:** \$$COST_USD USD" >> artifacts/doctor-report.md
         echo "- **Triggered:** $TRIGGER_TIME" >> artifacts/doctor-report.md  
         echo "- **Completed:** $RESPONSE_TIME" >> artifacts/doctor-report.md
         echo "- **Signal Quality:** ⚠️ _Tag as ✅ useful / ⚠️ noisy in PR comments_" >> artifacts/doctor-report.md
@@ -112,14 +155,14 @@ jobs:
         echo "> This is advisory only - human review and quality gates remain authoritative." >> artifacts/doctor-report.md
         
     - name: Apply AI Review Label
-      if: success()
+      if: success() && steps.cooldown.outputs.cooldown_active != 'true'
       run: |
         gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-review:advisory"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Upload Doctor Artifacts
-      if: always()
+      if: always() && steps.cooldown.outputs.cooldown_active != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: doctor-report-claude-review
