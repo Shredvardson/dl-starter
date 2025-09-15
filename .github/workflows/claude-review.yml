@@ -1,0 +1,226 @@
+name: Claude AI Review
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-review:
+    if: |
+      github.event.issue.pull_request && 
+      (contains(github.event.comment.body, '@claude') || contains(github.event.comment.body, '@Claude')) && 
+      (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/Review')) && 
+      github.event.comment.user.type != 'Bot' && 
+      (github.event.comment.author_association == 'OWNER' || 
+       github.event.comment.author_association == 'MEMBER' || 
+       github.event.comment.author_association == 'COLLABORATOR') &&
+      vars.CLAUDE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: claude-review-${{ github.event.issue.number }}
+      cancel-in-progress: true
+    
+    steps:
+    - name: Check Cooldown Period
+      id: cooldown
+      run: |
+        # Check for recent runs (3-5 min cooldown)
+        COOLDOWN_MINUTES=4
+        CUTOFF_TIME=$(date -d "$COOLDOWN_MINUTES minutes ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Look for recent AI review comments as cooldown marker
+        RECENT_REVIEWS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+          --jq ".[] | select(.body | contains(\"🤖 AI Review (Advisory)\")) | select(.created_at > \"$CUTOFF_TIME\") | .created_at" \
+          | wc -l)
+        
+        # Also check for duplicate /review comments from same user within cooldown
+        DUPLICATE_REQUESTS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+          --jq ".[] | select(.user.login == \"${{ github.event.comment.user.login }}\") | select(.body | test(\"@[Cc]laude\") and test(\"/[Rr]eview\")) | select(.created_at > \"$CUTOFF_TIME\") | .created_at" \
+          | wc -l)
+        
+        if [[ $RECENT_REVIEWS -gt 0 ]] || [[ $DUPLICATE_REQUESTS -gt 1 ]]; then
+          if [[ $RECENT_REVIEWS -gt 0 ]]; then
+            REASON="AI review ran within last $COOLDOWN_MINUTES minutes"
+          else
+            REASON="Multiple /review requests from same user within $COOLDOWN_MINUTES minutes"
+          fi
+          
+          echo "⏳ Cooldown active - $REASON"
+          echo "cooldown_active=true" >> $GITHUB_OUTPUT
+          
+          gh pr comment ${{ github.event.issue.number }} --body "$(cat <<'COOLDOWN_EOF'
+⏳ **AI Review Cooldown**
+
+> $REASON. Please wait before requesting again to manage costs and avoid spam.
+
+*This cooldown helps ensure efficient resource usage during the evaluation period.*
+COOLDOWN_EOF
+)"
+        else
+          echo "✅ Cooldown clear - proceeding with AI review"
+          echo "cooldown_active=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Harden Runner
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      uses: step-security/harden-runner@v2
+      with:
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          api.anthropic.com:443
+          actions.githubusercontent.com:443
+          token.actions.githubusercontent.com:443
+          uploads.github.com:443
+          objects.githubusercontent.com:443
+          pipelines.actions.githubusercontent.com:443
+          raw.githubusercontent.com:443
+          codeload.github.com:443
+          nodejs.org:443
+          registry.npmjs.org:443
+
+    - name: Checkout PR
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        ref: refs/pull/${{ github.event.issue.number }}/head
+
+    - name: Setup Node.js
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
+
+    - name: Enable Corepack (pnpm)
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      run: corepack enable
+
+    - name: Install dependencies
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      run: pnpm install --frozen-lockfile
+
+    - name: Simulate Claude Code Review (Smoke Test)
+      if: steps.cooldown.outputs.cooldown_active != 'true'
+      env:
+        COMMENT_BODY: ${{ github.event.comment.body }}
+      run: |
+        echo "🤖 Simulating Claude AI Review..."
+        
+        # Check path restrictions (using environment variable to prevent injection)
+        if echo "$COMMENT_BODY" | grep -Ei '\.github/workflows/|(^|[^A-Za-z0-9_])\.env([^A-Za-z0-9_]|$)|(^|[[:space:]])scripts/release(/|\.ya?ml|[[:space:]]|$)'; then
+          echo "❌ Request violates path restrictions"
+          exit 1
+        fi
+        
+        # Check for existing AI review comment to update (sticky comment behavior)
+        EXISTING_COMMENT_ID=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+          --jq '.[] | select(.user.login == "github-actions[bot]") | select(.body | contains("<!-- ai-review:v1")) | .id' \
+          | head -1 2>/dev/null || echo "")
+        
+        # Get actual PR head SHA after checkout
+        PR_HEAD_SHA=$(git rev-parse HEAD)
+        echo "PR head SHA: $PR_HEAD_SHA"
+        
+        # Prepare comment body with anti-poisoning headers
+        COMMENT_BODY="$(cat <<'EOF'
+        <!-- ai-review:v1 run_id=${{ github.run_id }} sha=PR_HEAD_SHA_PLACEHOLDER -->
+        ## 🤖 AI Review (Advisory)
+        
+        **Documentation Update Analysis:**
+        
+        ✅ **Change Quality**: Minor documentation enhancement adding testing notes
+        ✅ **CLAUDE.md Structure**: Maintains existing format and conventions
+        ✅ **Content Accuracy**: Testing notes are factual and helpful
+        ✅ **No Issues Found**: Clean documentation update with no concerns
+        
+        **Recommendations:**
+        - Documentation change looks good
+        - No security or quality concerns
+        - Maintains consistency with existing docs
+        
+        > This review is advisory only. Human review and existing quality gates (doctor/tsc/e2e) remain authoritative.
+        
+        **⚠️ SIMULATION**: This is a smoke test simulation of the actual Claude review workflow.
+        <!-- /ai-review:v1 -->
+        EOF
+        )"
+        
+        # Replace SHA placeholder with actual value
+        COMMENT_BODY=$(echo "$COMMENT_BODY" | sed "s/PR_HEAD_SHA_PLACEHOLDER/$PR_HEAD_SHA/g")
+        
+        # Either update existing comment or create new one (sticky behavior)
+        if [ -n "$EXISTING_COMMENT_ID" ]; then
+          echo "Updating existing AI review comment ID: $EXISTING_COMMENT_ID"
+          gh api repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID \
+            -X PATCH \
+            --field body="$COMMENT_BODY"
+        else
+          echo "Creating new AI review comment"
+          gh pr comment ${{ github.event.issue.number }} --body "$COMMENT_BODY"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Capture Metrics & Append to Doctor Report
+      if: always() && steps.cooldown.outputs.cooldown_active != 'true'
+      run: |
+        mkdir -p artifacts
+        TRIGGER_TIME="${{ github.event.comment.created_at }}"
+        RESPONSE_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Cost and model telemetry (simulation values for smoke test)
+        MODEL_NAME="claude-3-5-sonnet-20241022"
+        INPUT_TOKENS=2840
+        OUTPUT_TOKENS=756
+        COST_USD="0.0174"
+        
+        cat >> artifacts/doctor-report.md <<EOF
+
+## 🤖 AI Review (Advisory)
+
+**Generated:** $RESPONSE_TIME  
+**PR:** #${{ github.event.issue.number }}  
+**Trigger:** @claude /review  
+**Comment Time:** $TRIGGER_TIME
+
+### 📊 Cost & Model Telemetry
+- **Model:** $MODEL_NAME
+- **Input Tokens:** $INPUT_TOKENS
+- **Output Tokens:** $OUTPUT_TOKENS
+- **Estimated Cost:** \$COST_USD USD
+- **Triggered:** $TRIGGER_TIME
+- **Completed:** $RESPONSE_TIME
+- **Signal Quality:** ⚠️ _Tag as ✅ useful / ⚠️ noisy in PR comments_
+
+> AI review completed. See PR comments for detailed feedback.  
+> This is advisory only - human review and quality gates remain authoritative.
+EOF
+        
+    - name: Apply AI Review Label
+      if: success() && steps.cooldown.outputs.cooldown_active != 'true'
+      run: |
+        gh pr edit ${{ github.event.issue.number }} --add-label "ai-review:advisory"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload Doctor Artifacts
+      if: always() && steps.cooldown.outputs.cooldown_active != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: doctor-report-claude-review
+        path: artifacts/
+        retention-days: 30

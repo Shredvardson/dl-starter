@@ -1,1 +1,8 @@
+# Critical Infrastructure - Require maintainer review
+/.github/workflows/** @Shredvardson
+/scripts/release/** @Shredvardson
+/.env* @Shredvardson
+/**/.env* @Shredvardson
+
+# General codebase
 * @Shredvardson
