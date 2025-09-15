@@ -3,7 +3,8 @@
 # Prevents bots from modifying critical infrastructure files
 set -euo pipefail
 
-BASE="${BASE_REF:-origin/main}"
+BASE_REF_NAME="${BASE_REF:-main}"
+BASE="origin/$BASE_REF_NAME"
 HEAD="${HEAD_REF:-HEAD}"
 RESTRICTED=(
   ".github/workflows/**"
@@ -11,6 +12,22 @@ RESTRICTED=(
   ".env*"
   "**/.env*"
 )
+
+# Ensure base ref is available for diff (critical security check)
+echo "🔍 Fetching base ref for comparison..."
+if ! git fetch --depth=1 origin "$BASE_REF_NAME" 2>/dev/null; then
+  echo "❌ Failed to fetch base ref '$BASE_REF_NAME' - cannot verify restrictions"
+  echo "   This is a security failure - bot branch restrictions cannot be validated"
+  exit 1
+fi
+
+# Verify base ref exists after fetch
+if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
+  echo "❌ Base ref '$BASE' not found after fetch - security check failed"
+  exit 1
+fi
+
+echo "✅ Base ref '$BASE' successfully fetched and verified"
 
 # If not a bot branch, exit cleanly
 if [[ "${GITHUB_HEAD_REF:-}" != bots/claude/* ]]; then 
@@ -20,10 +37,11 @@ fi
 
 echo "🛡️  Checking bot branch for restricted path modifications..."
 
-# List changed files
+# List changed files (base ref is now guaranteed to exist)
 if ! CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>/dev/null); then
-  echo "⚠️  Unable to get diff, assuming clean (may be new branch)"
-  exit 0
+  echo "❌ Git diff failed even with fetched base ref - this is a security failure"
+  echo "   Cannot determine which files were changed, blocking for safety"
+  exit 1
 fi
 
 if [[ -z "$CHANGED" ]]; then
