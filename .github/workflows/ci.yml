@@ -39,6 +39,28 @@ jobs:
           DOCTOR_SILENT: 1
         run: pnpm run doctor:report
 
+      - name: Download AI Review Artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-review*"
+          path: ai-artifacts
+        continue-on-error: true
+
+      - name: Aggregate AI Reviews into Doctor Report
+        if: github.event_name == 'pull_request'
+        run: |
+          # Check for AI review artifacts and append to doctor report
+          if [ -d "ai-artifacts" ]; then
+            find ai-artifacts -name "ai-review.md" -exec cat {} \; >> artifacts/doctor-report.md 2>/dev/null || true
+            find ai-artifacts -name "security-review.md" -exec cat {} \; >> artifacts/doctor-report.md 2>/dev/null || true
+            
+            # If any AI artifacts were found, add a separator
+            if find ai-artifacts -name "*review*.md" -print -quit | grep -q .; then
+              echo -e "\n---\n*AI reviews aggregated by doctor pipeline*\n" >> artifacts/doctor-report.md
+            fi
+          fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

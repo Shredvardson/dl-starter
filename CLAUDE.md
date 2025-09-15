@@ -49,6 +49,8 @@ When you open a PR:
 
 **Usage Rules**:
 - Mention-only trigger (never automatic)
+- **Human-only**: Bots cannot trigger other bots
+- **Feature flag**: Requires `CLAUDE_ENABLED=true` repo variable
 - Pushes to `bots/claude/*` branches only  
 - **Non-editable zones**: `.github/workflows/**`, `scripts/release/**`, `.env*`, `**/.env*`
 - **Allowed paths**: `apps/`, `packages/`, `docs/**`
@@ -61,6 +63,7 @@ When you open a PR:
 **Purpose**: AI-powered vulnerability detection with semantic analysis  
 **Scope**: Advisory-first (`fail_on_findings: false`), CodeQL remains blocker  
 **Output**: Inline comments + aggregated in doctor report
+**Feature flag**: Requires `CLAUDE_SECURITY_ENABLED=true` repo variable
 **Timeout**: 10 minutes max per scan
 **Permissions**: Read-only, comment-only (cannot push code)
 
@@ -82,6 +85,23 @@ When you open a PR:
 - **Self-Critique** (`/review:self-critique`): Manual planning validation  
 - **Security Scan** (`/security:scan`): Automated vulnerability detection
 - **Refactor-Secure** (`/dev:refactor-secure`): Manual security refactoring
+
+### Operational Controls
+**Feature Flags** (Repository Variables):
+- `CLAUDE_ENABLED=true` - Enable AI-powered PR reviews
+- `CLAUDE_SECURITY_ENABLED=true` - Enable security scanning
+
+**Safety Mechanisms**:
+- Human-only triggers (bots cannot activate bots)
+- Branch isolation (`bots/claude/*` only)
+- Path restrictions (no access to workflows, env files)
+- Timeout limits (10 minutes per job)
+- Concurrency controls (cancel duplicate runs)
+
+**Quality Integration**:
+- All AI outputs aggregate into single doctor report
+- Existing quality gates remain authoritative  
+- Advisory-first approach with measurable false-positive tracking
 
 ## References
 - CONTRIBUTING.md · RELEASING.md · SECURITY.md

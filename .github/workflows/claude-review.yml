@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   claude-review:
-    if: github.event.issue.pull_request && contains(tolower(github.event.comment.body), '@claude') && contains(tolower(github.event.comment.body), '/review')
+    if: github.event.issue.pull_request && contains(tolower(github.event.comment.body), '@claude') && contains(tolower(github.event.comment.body), '/review') && github.event.comment.user.type != 'Bot' && vars.CLAUDE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:

@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   security-review:
+    if: vars.CLAUDE_SECURITY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
