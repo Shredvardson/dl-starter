@@ -1,8 +1,8 @@
 {
-  "generated": "2025-09-15T10:07:08.974Z",
+  "generated": "2025-09-15T10:52:23.500Z",
   "version": "0.1.0",
   "checksums": {
-    "CLAUDE.md": "eead737adcbbd839",
+    "CLAUDE.md": "e08acfb3a0423552",
     "docs/llm/context-map.json": "a3041b1c4705493e",
     "docs/llm/STARTER_MANIFEST.json": "6316b778a8dac713",
     "docs/llm/NEW_APP_KICKOFF.md": "076f42b2072c81fa",
