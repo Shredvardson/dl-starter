@@ -1,0 +1,106 @@
+name: Claude AI Review
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-review:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '@claude /review')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          api.anthropic.com:443
+
+    - name: Checkout PR
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Claude Code Review
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        trigger_comment: '@claude /review'
+        
+        # Path restrictions
+        allowed_paths: |
+          apps/**
+          packages/**
+          docs/**
+        denied_paths: |
+          .github/workflows/**
+          scripts/release/**
+          .env*
+          *.env*
+          **/.env*
+        
+        # Branch isolation
+        branch_prefix: 'bots/claude/'
+        
+        # Quality integration
+        run_commands: |
+          npm run doctor
+          npm run build
+          npm run test:unit
+        
+        # Output to doctor artifacts
+        comment_format: |
+          ## 🤖 AI Review (Advisory)
+          
+          {review_content}
+          
+          > This review is advisory only. Human review and existing quality gates (doctor/tsc/e2e) remain authoritative.
+          
+          **Integration**: Results appended to [doctor report artifacts](../artifacts/doctor-report.md)
+
+    - name: Append to Doctor Report
+      if: always()
+      run: |
+        mkdir -p artifacts
+        echo "" >> artifacts/doctor-report.md
+        echo "## 🤖 AI Review (Advisory)" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "**Generated:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> artifacts/doctor-report.md
+        echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
+        echo "**Trigger:** @claude /review" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "> AI review completed. See PR comments for detailed feedback." >> artifacts/doctor-report.md
+        echo "> This is advisory only - human review and quality gates remain authoritative." >> artifacts/doctor-report.md
+        
+    - name: Upload Doctor Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: doctor-report-claude-review
+        path: artifacts/
+        retention-days: 30

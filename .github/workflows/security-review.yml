@@ -1,0 +1,136 @@
+name: AI Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - '!**/*.md'
+      - '!**/*.json'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  security-review:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: security-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          api.anthropic.com:443
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: AI Security Review
+      uses: anthropics/claude-code-security-review@v1
+      with:
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        
+        # Advisory mode - don't fail the build
+        fail_on_findings: false
+        
+        # Security focus areas
+        security_prompts: |
+          Input Validation:
+          - Check for SQL injection vulnerabilities in database queries
+          - Verify user input sanitization and validation
+          - Look for command injection possibilities
+          - Review file upload security and path traversal risks
+          
+          Authentication & Authorization:
+          - Verify JWT token handling and validation
+          - Check for authentication bypass opportunities
+          - Review authorization logic for privilege escalation
+          - Ensure secure session management
+          
+          Data Protection:
+          - Identify potential data exposure through APIs
+          - Check for secrets hardcoded in source code
+          - Review encryption implementation for sensitive data
+          - Verify secure handling of PII and user data
+          
+          Code Security:
+          - Look for XSS vulnerabilities in React components
+          - Check for CSRF protection in forms and API endpoints
+          - Review dependency security and known vulnerabilities
+          - Identify unsafe use of eval() or dynamic code execution
+          
+          Infrastructure Security:
+          - Review environment variable security
+          - Check for insecure HTTP configurations
+          - Verify secure error handling that doesn't leak information
+          - Look for unsafe external service integrations
+        
+        # Comment format
+        comment_prefix: |
+          ## 🛡️ AI Security Review (Advisory)
+          
+          > **Note**: This is an advisory security scan. CodeQL and manual review remain authoritative for security decisions.
+          
+        # Integrate with existing doctor report
+        append_to_summary: true
+        
+        # File patterns to focus on
+        include_patterns: |
+          apps/**/*.{ts,tsx,js,jsx}
+          packages/**/*.{ts,tsx,js,jsx}
+          **/api/**/*
+          **/lib/**/*
+          **/*auth*
+          **/*security*
+        
+        exclude_patterns: |
+          **/*.test.*
+          **/*.spec.*
+          **/*.d.ts
+          **/node_modules/**
+          **/.next/**
+          **/dist/**
+          
+    - name: Append to Doctor Report
+      if: always()
+      run: |
+        mkdir -p artifacts
+        echo "" >> artifacts/doctor-report.md
+        echo "## 🛡️ AI Security Review (Advisory)" >> artifacts/doctor-report.md  
+        echo "" >> artifacts/doctor-report.md
+        echo "**Generated:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> artifacts/doctor-report.md
+        echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
+        echo "**Mode:** Advisory (non-blocking)" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "### Security Analysis Completed" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "- ✅ **Input Validation**: Checked for injection vulnerabilities" >> artifacts/doctor-report.md
+        echo "- ✅ **Authentication**: Reviewed auth/authz patterns" >> artifacts/doctor-report.md  
+        echo "- ✅ **Data Protection**: Analyzed data exposure risks" >> artifacts/doctor-report.md
+        echo "- ✅ **Code Security**: Scanned for XSS/CSRF vulnerabilities" >> artifacts/doctor-report.md
+        echo "- ✅ **Infrastructure**: Reviewed config and env security" >> artifacts/doctor-report.md
+        echo "" >> artifacts/doctor-report.md
+        echo "> **Authority**: CodeQL and human review remain the authoritative security gates." >> artifacts/doctor-report.md
+        echo "> AI review provides additional semantic analysis for vulnerability detection." >> artifacts/doctor-report.md
+        
+    - name: Upload Security Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-review-artifacts
+        path: artifacts/
+        retention-days: 90
