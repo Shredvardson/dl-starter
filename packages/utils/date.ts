@@ -43,10 +43,12 @@ export function isPastDate(date: Date | string): boolean {
 export function getRelativeTime(date: Date | string): string {
   try {
     const parsedDate = typeof date === 'string' ? new Date(date) : date;
-    const diffMs = Date.now() - parsedDate.getTime();
+    const t = parsedDate.getTime();
+    if (!Number.isFinite(t)) return 'unknown time';
+    const diffMs = Date.now() - t;
     const diffMinutes = Math.floor(diffMs / 60000);
     
-    if (diffMinutes < 1) return 'just now';
+    if (diffMs <= 0 || diffMinutes < 1) return 'just now';
     if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
     
     const diffHours = Math.floor(diffMinutes / 60);
