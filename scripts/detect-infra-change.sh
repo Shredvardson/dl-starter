@@ -8,6 +8,17 @@ HEAD="${HEAD_REF:-HEAD}"
 # Ensure base ref is available
 git fetch --depth=1 origin "${GITHUB_BASE_REF:-main}" 2>/dev/null || true
 
+# Validate refs exist after fetch
+if ! git rev-parse --verify "$HEAD" >/dev/null 2>&1; then
+  echo "::error::HEAD ref '$HEAD' does not exist"
+  exit 1
+fi
+
+if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
+  echo "::error::BASE ref '$BASE' does not exist"
+  exit 1
+fi
+
 # Get changed files
 CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>/dev/null || true)
 

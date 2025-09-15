@@ -232,40 +232,41 @@ jobs:
       - name: Detect Infrastructure Changes
         run: bash scripts/detect-infra-change.sh
 
-      - name: No-op for infra-only PRs
-        if: env.IS_INFRA_CHANGE == 'true'
+      - name: Check if E2E needed
         run: |
-          echo "🔧 Infrastructure-only PR: Skipping E2E tests"
-          echo "✅ No application code changes detected, E2E tests not needed"
-          exit 0
+          if [[ "$IS_INFRA_CHANGE" == "true" ]]; then
+            echo "🔧 Infrastructure-only PR: Skipping E2E tests"
+            echo "✅ No application code changes detected, E2E tests not needed"
+            echo "SKIP_E2E=true" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup pnpm
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
           run_install: false
 
       - uses: actions/setup-node@v5
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         with:
           node-version: 20
           cache: 'pnpm'
 
       - name: Install dependencies
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         run: pnpm --filter=web run build
 
       - name: Install Playwright browsers
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         run: pnpm dlx playwright install --with-deps
 
       - name: Run E2E tests
-        if: env.IS_INFRA_CHANGE != 'true'
+        if: env.SKIP_E2E != 'true'
         run: pnpm run test:e2e:ci
 
   promote-gate:
