@@ -39,26 +39,45 @@ jobs:
           DOCTOR_SILENT: 1
         run: pnpm run doctor:report
 
-      - name: Download AI Review Artifacts
+      - name: Scrape AI Reviews from PR Comments
         if: github.event_name == 'pull_request'
-        uses: actions/download-artifact@v4
-        with:
-          pattern: "*-review*"
-          path: ai-artifacts
-        continue-on-error: true
-
-      - name: Aggregate AI Reviews into Doctor Report
-        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check for AI review artifacts and append to doctor report
-          if [ -d "ai-artifacts" ]; then
-            find ai-artifacts -name "ai-review.md" -exec cat {} \; >> artifacts/doctor-report.md 2>/dev/null || true
-            find ai-artifacts -name "security-review.md" -exec cat {} \; >> artifacts/doctor-report.md 2>/dev/null || true
-            
-            # If any AI artifacts were found, add a separator
-            if find ai-artifacts -name "*review*.md" -print -quit | grep -q .; then
-              echo -e "\n---\n*AI reviews aggregated by doctor pipeline*\n" >> artifacts/doctor-report.md
-            fi
+          # Scrape structured AI review comments and append to doctor report
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          
+          echo "Scraping AI review comments from PR #$PR_NUMBER..."
+          
+          # Get AI review comment content
+          AI_REVIEW_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
+            --jq '.[] | select(.body | contains("<!-- ai-review:v1 -->")) | .body' 2>/dev/null || echo "")
+          
+          # Get AI security review comment content
+          AI_SEC_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
+            --jq '.[] | select(.body | contains("<!-- ai-sec-review:v1 -->")) | .body' 2>/dev/null || echo "")
+          
+          # Extract and append AI review content
+          if [ -n "$AI_REVIEW_CONTENT" ]; then
+            echo "Found AI review comment, extracting content..."
+            echo "$AI_REVIEW_CONTENT" | sed -n '/<!-- ai-review:v1 -->/,/<!-- \/ai-review:v1 -->/p' | \
+              sed '1d;$d' >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+          fi
+          
+          # Extract and append AI security review content
+          if [ -n "$AI_SEC_CONTENT" ]; then
+            echo "Found AI security review comment, extracting content..."
+            echo "$AI_SEC_CONTENT" | sed -n '/<!-- ai-sec-review:v1 -->/,/<!-- \/ai-sec-review:v1 -->/p' | \
+              sed '1d;$d' >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+          fi
+          
+          # Add separator if any AI content was found
+          if [ -n "$AI_REVIEW_CONTENT" ] || [ -n "$AI_SEC_CONTENT" ]; then
+            echo "---" >> artifacts/doctor-report.md
+            echo "*AI reviews aggregated by comment-scrape pipeline*" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
           fi
 
       - uses: actions/upload-artifact@v4

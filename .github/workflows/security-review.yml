@@ -33,6 +33,9 @@ jobs:
           api.github.com:443
           github.com:443
           api.anthropic.com:443
+          uploads.github.com:443
+          objects.githubusercontent.com:443
+          pipelines.actions.githubusercontent.com:443
 
     - name: Checkout code
       uses: actions/checkout@v4
@@ -48,8 +51,9 @@ jobs:
         CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
         echo "Changed files: $CHANGED_FILES"
         
-        # Simulate security review comment for this PR
+        # Post structured comment for doctor aggregation
         gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'EOF'
+        <!-- ai-sec-review:v1 -->
         ## 🛡️ AI Security Review (Advisory)
         
         > **Note**: This is an advisory security scan. CodeQL and manual review remain authoritative for security decisions.
@@ -70,6 +74,7 @@ jobs:
         **Summary**: Clean documentation update with no security implications.
         
         **⚠️ SIMULATION**: This is a smoke test simulation of the actual security review workflow.
+        <!-- /ai-sec-review:v1 -->
         EOF
         )"
       env:
@@ -87,32 +92,34 @@ jobs:
         OUTPUT_TOKENS=420
         COST_USD="0.0096"
         
-        echo "" >> artifacts/doctor-report.md
-        echo "## 🛡️ AI Security Review (Advisory)" >> artifacts/doctor-report.md  
-        echo "" >> artifacts/doctor-report.md
-        echo "**Generated:** $SCAN_TIME" >> artifacts/doctor-report.md
-        echo "**PR:** #${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
-        echo "**Mode:** Advisory (non-blocking)" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "### 📊 Cost & Model Telemetry" >> artifacts/doctor-report.md
-        echo "- **Model:** $MODEL_NAME" >> artifacts/doctor-report.md
-        echo "- **Input Tokens:** $INPUT_TOKENS" >> artifacts/doctor-report.md
-        echo "- **Output Tokens:** $OUTPUT_TOKENS" >> artifacts/doctor-report.md
-        echo "- **Estimated Cost:** \$$COST_USD USD" >> artifacts/doctor-report.md
-        echo "- **Completed:** $SCAN_TIME" >> artifacts/doctor-report.md
-        echo "- **Scope:** Apps and packages (code files only)" >> artifacts/doctor-report.md
-        echo "- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "### Security Analysis Completed" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "- ✅ **Input Validation**: Checked for injection vulnerabilities" >> artifacts/doctor-report.md
-        echo "- ✅ **Authentication**: Reviewed auth/authz patterns" >> artifacts/doctor-report.md  
-        echo "- ✅ **Data Protection**: Analyzed data exposure risks" >> artifacts/doctor-report.md
-        echo "- ✅ **Code Security**: Scanned for XSS/CSRF vulnerabilities" >> artifacts/doctor-report.md
-        echo "- ✅ **Infrastructure**: Reviewed config and env security" >> artifacts/doctor-report.md
-        echo "" >> artifacts/doctor-report.md
-        echo "> **Authority**: CodeQL and human review remain the authoritative security gates." >> artifacts/doctor-report.md
-        echo "> AI review provides additional semantic analysis for vulnerability detection." >> artifacts/doctor-report.md
+{
+          echo ""
+          echo "## 🛡️ AI Security Review (Advisory)"  
+          echo ""
+          echo "**Generated:** $SCAN_TIME"
+          echo "**PR:** #${{ github.event.pull_request.number }}"
+          echo "**Mode:** Advisory (non-blocking)"
+          echo ""
+          echo "### 📊 Cost & Model Telemetry"
+          echo "- **Model:** $MODEL_NAME"
+          echo "- **Input Tokens:** $INPUT_TOKENS"
+          echo "- **Output Tokens:** $OUTPUT_TOKENS"
+          echo "- **Estimated Cost:** \$$COST_USD USD"
+          echo "- **Completed:** $SCAN_TIME"
+          echo "- **Scope:** Apps and packages (code files only)"
+          echo "- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_"
+          echo ""
+          echo "### Security Analysis Completed"
+          echo ""
+          echo "- ✅ **Input Validation**: Checked for injection vulnerabilities"
+          echo "- ✅ **Authentication**: Reviewed auth/authz patterns"  
+          echo "- ✅ **Data Protection**: Analyzed data exposure risks"
+          echo "- ✅ **Code Security**: Scanned for XSS/CSRF vulnerabilities"
+          echo "- ✅ **Infrastructure**: Reviewed config and env security"
+          echo ""
+          echo "> **Authority**: CodeQL and human review remain the authoritative security gates."
+          echo "> AI review provides additional semantic analysis for vulnerability detection."
+        } >> artifacts/doctor-report.md
         
     - name: Apply Security Review Label
       if: success()
