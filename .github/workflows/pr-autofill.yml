@@ -18,10 +18,12 @@ jobs:
 
       - name: Load template
         id: tpl
-        run: |
-          echo "TEMPLATE<<'EOF'" >> $GITHUB_OUTPUT
-          cat .github/pull_request_template.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            return fs.readFileSync('.github/pull_request_template.md', 'utf8');
 
       - name: Patch PR body if missing/placeholder
         uses: actions/github-script@v7
@@ -42,4 +44,4 @@ jobs:
               core.info("PR body looks good. No change.");
             }
         env:
-          TEMPLATE: ${{ steps.tpl.outputs.TEMPLATE }}
+          TEMPLATE: ${{ steps.tpl.outputs.result }}
