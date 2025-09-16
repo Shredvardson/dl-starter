@@ -15,7 +15,7 @@
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
     "test:e2e": "turbo run test:e2e --filter=web",
-    "test:e2e:ci": "playwright test apps/web/tests/smoke.spec.ts --config playwright.config.ts",
+    "test:e2e:ci": "playwright test --config playwright.config.ts",
     "typecheck": "turbo run typecheck",
     "debug": "tsx scripts/debug.ts",
     "debug:sentry": "tsx scripts/debug.ts sentry:check",
@@ -39,7 +39,7 @@
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
-    "clean": "rm -rf .turbo **/*.tsbuildinfo coverage test-results playwright-report 2>/dev/null || true"
+    "clean": "rm -rf .turbo coverage test-results playwright-report 2>/dev/null || true; find . -type f -name '*.tsbuildinfo' -print -delete 2>/dev/null || true"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",

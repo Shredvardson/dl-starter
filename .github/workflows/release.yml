@@ -22,8 +22,8 @@ jobs:
           run_install: false
       - run: pnpm install --frozen-lockfile
       - run: pnpm changeset version
-      - run: git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"
-      - run: git add -A && git commit -m "chore(release): version packages" || echo "No changes to release"
+      - run: 'git config user.name "github-actions[bot]" && git config user.email "github-actions[bot]@users.noreply.github.com"'
+      - run: 'git add -A && git commit -m "chore(release): version packages" || echo "No changes to release"'
       - run: git push
   tag:
     needs: version

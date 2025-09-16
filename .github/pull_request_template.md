@@ -7,6 +7,16 @@ _What changed and why in 1–3 sentences._
 - [ ] Single task type (feature/refactor/test/docs)
 - [ ] Only touched files listed in docs/llm/context-map.json
 
+## AI Review Status
+- [ ] **AI Review:** ⚠️ Not requested / ✅ Requested (`@claude /review`)
+- [ ] **Security Scan:** ⚠️ Not applicable / ✅ Completed automatically
+
+_If AI review completed, paste advisory feedback summary from doctor report below:_
+
+```
+[Paste "🤖 AI Review (Advisory)" or "🛡️ AI Security Review (Advisory)" sections from artifacts/doctor-report.md]
+```
+
 ## Verification
 Paste real outputs or "OK":
 - [ ] `pnpm run doctor:report` (attach artifacts/doctor-report.md)
