@@ -9,23 +9,19 @@ permissions:
 
 jobs:
   ensure-body:
-    if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 1
-      
+          ref: ${{ github.head_ref }}
+
       - name: Load template
         id: tpl
-        uses: actions/github-script@v7
-        with:
-          result-encoding: string
-          script: |
-            const fs = require('fs');
-            return fs.readFileSync('.github/pull_request_template.md', 'utf8');
+        run: |
+          echo "TEMPLATE<<'EOF'" >> $GITHUB_OUTPUT
+          cat .github/pull_request_template.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Patch PR body if missing/placeholder
         uses: actions/github-script@v7
@@ -33,12 +29,12 @@ jobs:
           script: |
             const body = context.payload.pull_request.body || "";
             const looksEmpty = body.trim().length < 50;
-            const isPlaceholder = /(##\s*Summary)|(Summary:\s*_What changed)/i.test(body);
+            const isPlaceholder = /Summary\s*_What changed/.test(body);
             
             if (looksEmpty || isPlaceholder) {
               await github.rest.pulls.update({
                 ...context.repo,
-                pull_number: context.payload.pull_request.number,
+                pull_number: context.payload.number,
                 body: process.env.TEMPLATE
               });
               core.notice("PR body was empty/placeholder → filled from template.");
@@ -46,4 +42,4 @@ jobs:
               core.info("PR body looks good. No change.");
             }
         env:
-          TEMPLATE: ${{ steps.tpl.outputs.result }}
+          TEMPLATE: ${{ steps.tpl.outputs.TEMPLATE }}
