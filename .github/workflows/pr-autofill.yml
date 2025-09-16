@@ -1,4 +1,5 @@
 name: PR Autofill
+
 on:
   pull_request_target:
     types: [opened, edited, synchronize]
@@ -9,37 +10,72 @@ permissions:
 
 jobs:
   ensure-body:
+    # Optional guard so it never runs on pushes
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout base (trusted) ref
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.head_ref }}
+          # Under pull_request_target, always read files from the base repo/commit
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Load template
         id: tpl
-        run: |
-          echo "TEMPLATE<<'EOF'" >> $GITHUB_OUTPUT
-          cat .github/pull_request_template.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            return fs.readFileSync('.github/pull_request_template.md', 'utf8');
 
       - name: Patch PR body if missing/placeholder
         uses: actions/github-script@v7
         with:
           script: |
-            const body = context.payload.pull_request.body || "";
-            const looksEmpty = body.trim().length < 50;
-            const isPlaceholder = /Summary\s*_What changed/.test(body);
+            // Current PR body
+            const pr = context.payload.pull_request;
+            const body = (pr?.body || "");
+
+            // Template loaded in env
+            const tpl = process.env.TEMPLATE;
+            if (!tpl || tpl.trim().length < 10) {
+              core.setFailed("Template is empty or missing.");
+              return;
+            }
+
+            // Strip HTML comments and normalize whitespace
+            const cleaned = body.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+            const templateCleaned = tpl.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+
+            // Check if body is very short
+            const isVeryShort = cleaned.length < 50;
             
-            if (looksEmpty || isPlaceholder) {
+            // Check if cleaned body matches template (exact or trimmed equality)
+            const matchesTemplate = cleaned === templateCleaned || 
+                                   cleaned === templateCleaned.substring(0, 200);
+
+            // Check for explicit placeholder tokens near summary or in first 200 chars
+            const first200 = cleaned.substring(0, 200);
+            const summarySection = cleaned.match(/(##\s*Summary[\s\S]{0,200})/i);
+            const searchArea = summarySection ? summarySection[1] : first200;
+            
+            const hasPlaceholderTokens = /\b(What changed|TBD|TODO|Fill this in|PLACEHOLDER)\b/i.test(searchArea);
+
+            // Determine if this is a placeholder
+            const isPlaceholder = isVeryShort || matchesTemplate || hasPlaceholderTokens;
+
+            if (isPlaceholder) {
               await github.rest.pulls.update({
                 ...context.repo,
-                pull_number: context.payload.number,
-                body: process.env.TEMPLATE
+                pull_number: pr.number,
+                body: tpl
               });
               core.notice("PR body was empty/placeholder → filled from template.");
             } else {
               core.info("PR body looks good. No change.");
             }
         env:
-          TEMPLATE: ${{ steps.tpl.outputs.TEMPLATE }}
+          TEMPLATE: ${{ steps.tpl.outputs.result }}

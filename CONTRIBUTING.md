@@ -59,6 +59,8 @@ Branch protection requires these checks:
 - `typecheck` - TypeScript compilation
 - Tests (unit/e2e) if they exist
 
+**Workflow Security:** See [docs/workflow-security.md](docs/workflow-security.md) for GitHub Actions security practices.
+
 ## Workspace & Tasks
 
 ### New App from Template
