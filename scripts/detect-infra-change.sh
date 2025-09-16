@@ -19,12 +19,15 @@ if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Ensure merge-base exists, attempt to deepen if needed
-if ! git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
+# Ensure merge-base exists, attempt to deepen both refs if needed
+if ! MB=$(git merge-base "$BASE" "$HEAD" 2>/dev/null); then
   echo "::warning::No merge-base found between $BASE and $HEAD, attempting to deepen fetch"
   git fetch --deepen=50 origin "${GITHUB_BASE_REF:-main}" 2>/dev/null || true
+  if [[ "$HEAD" != "HEAD" ]]; then
+    git fetch --deepen=50 origin "${GITHUB_HEAD_REF:-$HEAD}" 2>/dev/null || true
+  fi
   
-  if ! git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
+  if ! MB=$(git merge-base "$BASE" "$HEAD" 2>/dev/null); then
     echo "::error::Cannot compute merge-base between $BASE and $HEAD even after deepening fetch"
     exit 1
   fi
