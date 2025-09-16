@@ -34,33 +34,35 @@ if ! MB=$(git merge-base "$BASE" "$HEAD" 2>/dev/null); then
 fi
 
 # Get changed files with proper error handling
-if ! CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>&1); then
+if ! CHANGED=$(git diff -z --name-only "$BASE...$HEAD" 2>&1); then
   echo "::error::Failed to get diff between $BASE and $HEAD: $CHANGED" >&2
   exit 1
 fi
 
 if [[ -z "$CHANGED" ]]; then
   echo "No changes detected, treating as non-infra"
-  echo "IS_INFRA_CHANGE=false" >> "$GITHUB_ENV"
+  if [[ -n "${GITHUB_ENV:-}" ]]; then
+    echo "IS_INFRA_CHANGE=false" >> "$GITHUB_ENV"
+  else
+    echo "IS_INFRA_CHANGE=false"
+  fi
   exit 0
 fi
 
 echo "Changed files:"
-while IFS= read -r _f; do
-  [[ -n "$_f" ]] && printf '  - %s\n' "$_f"
+while IFS= read -r -d '' _f; do
+  printf '  - %s\n' "$_f"
 done <<< "$CHANGED"
 
 # Check if all files match infrastructure patterns
 is_infra=true
-while IFS= read -r f; do
-  if [[ -n "$f" ]]; then
-    # Check if file matches infra patterns
-    if [[ "$f" == .github/* || "$f" == scripts/* || "$f" == infra/* || "$f" == */ci/* || "$f" == *.md ]]; then
-      echo "  ✅ $f (infrastructure)"
-    else
-      echo "  ❌ $f (application code)"
-      is_infra=false
-    fi
+while IFS= read -r -d '' f; do
+  # Check if file matches infra patterns
+  if [[ "$f" == .github/* || "$f" == scripts/* || "$f" == infra/* || "$f" == */ci/* || "$f" == *.md ]]; then
+    echo "  ✅ $f (infrastructure)"
+  else
+    echo "  ❌ $f (application code)"
+    is_infra=false
   fi
 done <<< "$CHANGED"
 
@@ -76,4 +78,8 @@ else
   echo "   - Enforcing all quality gates"
 fi
 
-echo "IS_INFRA_CHANGE=$is_infra" >> "$GITHUB_ENV"
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  echo "IS_INFRA_CHANGE=$is_infra" >> "$GITHUB_ENV"
+else
+  echo "IS_INFRA_CHANGE=$is_infra"
+fi

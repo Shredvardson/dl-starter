@@ -53,6 +53,7 @@ jobs:
           # Base SHA is trusted, not attacker-controlled fork
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
+          fetch-depth: 1
 ```
 
 ## 3. Guard Placeholder Detection
@@ -119,4 +120,4 @@ permissions:
 4. **Low**: Optional fork restrictions
 
 ---
-*Generated based on GPT-5's security recommendations*
+> Note: Generated from internal security recommendations.
