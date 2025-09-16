@@ -97,21 +97,17 @@ jobs:
           
           # Add separator if any AI content was found
           if [ -n "$AI_REVIEW_CONTENT" ] || [ -n "$AI_SEC_CONTENT" ]; then
-            {
-              echo "---"
-              echo "*AI reviews aggregated by comment-scrape pipeline*"
-              echo ""
-            } >> artifacts/doctor-report.md
+            echo "---" >> artifacts/doctor-report.md
+            echo "*AI reviews aggregated by comment-scrape pipeline*" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
           else
             # Graceful fallback - AI review not available but don't block CI
-            cat >> artifacts/doctor-report.md <<EOF
-## ℹ️ AI Review Status
-
-AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})
-
-> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment.
-
-EOF
+            echo "## ℹ️ AI Review Status" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+            echo "AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})" >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
+            echo "> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment." >> artifacts/doctor-report.md
+            echo "" >> artifacts/doctor-report.md
           fi
 
       - uses: actions/upload-artifact@v4
@@ -236,40 +232,40 @@ EOF
       - name: Detect Infrastructure Changes
         run: bash scripts/detect-infra-change.sh
 
-      - name: Check if E2E needed
+      - name: No-op for infra-only PRs
+        if: env.IS_INFRA_CHANGE == 'true'
         run: |
-          [[ "$IS_INFRA_CHANGE" == "true" ]] || exit 0
           echo "🔧 Infrastructure-only PR: Skipping E2E tests"
           echo "✅ No application code changes detected, E2E tests not needed"
-          echo "SKIP_E2E=true" >> "$GITHUB_ENV"
+          exit 0
 
       - name: Setup pnpm
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9.12.0
           run_install: false
 
       - uses: actions/setup-node@v5
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         with:
           node-version: 20
           cache: 'pnpm'
 
       - name: Install dependencies
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         run: pnpm --filter=web run build
 
       - name: Install Playwright browsers
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         run: pnpm dlx playwright install --with-deps
 
       - name: Run E2E tests
-        if: env.SKIP_E2E != 'true'
+        if: env.IS_INFRA_CHANGE != 'true'
         run: pnpm run test:e2e:ci
 
   promote-gate:
@@ -282,9 +278,9 @@ EOF
       - name: Check promote label for bot PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          # Get PR head ref (from environment, not inline)
+          # Get PR head ref
+          HEAD_REF="${{ github.event.pull_request.head.ref }}"
           echo "Head ref: $HEAD_REF"
           
           # Check if this is a bot branch
