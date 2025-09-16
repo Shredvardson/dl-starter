@@ -42,6 +42,7 @@
     "clean": "rm -rf .turbo coverage test-results playwright-report 2>/dev/null || true; find . -type f -name '*.tsbuildinfo' -print -delete 2>/dev/null || true"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.6",
     "@eslint/eslintrc": "^3.1.0",
     "@playwright/test": "^1.55.0",
     "commander": "^14.0.0",

@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-16T06:02:20.920Z",
+  "generated": "2025-09-16T09:31:19.775Z",
   "packages": {
     "web": {
       "scripts": {
@@ -45,7 +45,7 @@
         "test": "turbo run test",
         "test:unit": "turbo run test:unit",
         "test:e2e": "turbo run test:e2e --filter=web",
-        "test:e2e:ci": "playwright test apps/web/tests/smoke.spec.ts --config playwright.config.ts",
+        "test:e2e:ci": "playwright test --config playwright.config.ts",
         "typecheck": "turbo run typecheck",
         "debug": "tsx scripts/debug.ts",
         "debug:sentry": "tsx scripts/debug.ts sentry:check",
