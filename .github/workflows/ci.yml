@@ -69,14 +69,14 @@ jobs:
             --jq --arg sha "$PR_HEAD_SHA" '.[] |
             select(.user.login == "github-actions[bot]") |
             select(.body | contains("<!-- ai-review:v1") and contains($sha)) |
-            .body' 2>/dev/null | head -1 || echo "")
+            .body' 2>/dev/null || true)
 
           # Get AI security review comment content with anti-poisoning validation
           AI_SEC_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
             --jq --arg sha "$PR_HEAD_SHA" '.[] |
             select(.user.login == "github-actions[bot]") |
             select(.body | contains("<!-- ai-sec-review:v1") and contains($sha)) |
-            .body' 2>/dev/null | head -1 || echo "")
+            .body' 2>/dev/null || true)
 
           # Extract and append AI review content
           if [ -n "$AI_REVIEW_CONTENT" ]; then
@@ -290,9 +290,9 @@ jobs:
             echo "🔍 Checking for 'promote' label requirement..."
 
             # Check if PR has promote label
-            LABELS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.labels[].name')
+            LABELS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.labels[]?.name' || true)
 
-            if echo "$LABELS" | grep -q "promote"; then
+            if echo "$LABELS" | grep -qi "^promote$"; then
               echo "✅ 'promote' label found - bot PR approved for merge"
               exit 0
             else

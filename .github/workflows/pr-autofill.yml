@@ -20,6 +20,7 @@ jobs:
           # Under pull_request_target, always read files from the base repo/commit
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Load template
         id: tpl
@@ -38,11 +39,6 @@ jobs:
             const pr = context.payload.pull_request;
             const body = (pr?.body || "");
 
-            // Consider "empty" and common placeholder cases
-            const looksEmpty = body.trim().length < 50;
-            const cleaned = body.replace(/<!--[\s\S]*?-->/g, ''); // ignore HTML comments
-            const isPlaceholder = /(##\s*Summary\b)|Summary:\s*_?What changed/i.test(cleaned);
-
             // Template loaded in env
             const tpl = process.env.TEMPLATE;
             if (!tpl || tpl.trim().length < 10) {
@@ -50,7 +46,28 @@ jobs:
               return;
             }
 
-            if (looksEmpty || isPlaceholder) {
+            // Strip HTML comments and normalize whitespace
+            const cleaned = body.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+            const templateCleaned = tpl.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+
+            // Check if body is very short
+            const isVeryShort = cleaned.length < 50;
+            
+            // Check if cleaned body matches template (exact or trimmed equality)
+            const matchesTemplate = cleaned === templateCleaned || 
+                                   cleaned === templateCleaned.substring(0, 200);
+
+            // Check for explicit placeholder tokens near summary or in first 200 chars
+            const first200 = cleaned.substring(0, 200);
+            const summarySection = cleaned.match(/(##\s*Summary[\s\S]{0,200})/i);
+            const searchArea = summarySection ? summarySection[1] : first200;
+            
+            const hasPlaceholderTokens = /\b(What changed|TBD|TODO|Fill this in|PLACEHOLDER)\b/i.test(searchArea);
+
+            // Determine if this is a placeholder
+            const isPlaceholder = isVeryShort || matchesTemplate || hasPlaceholderTokens;
+
+            if (isPlaceholder) {
               await github.rest.pulls.update({
                 ...context.repo,
                 pull_number: pr.number,
