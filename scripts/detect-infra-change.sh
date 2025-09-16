@@ -30,7 +30,7 @@ fi
 
 echo "Changed files:"
 while IFS= read -r _f; do
-  [ -n "$_f" ] && echo "  - $_f"
+  [[ -n "$_f" ]] && printf '  - %s\n' "$_f"
 done <<< "$CHANGED"
 
 # Check if all files match infrastructure patterns
