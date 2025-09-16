@@ -58,27 +58,26 @@ jobs:
         run: |
           # Scrape structured AI review comments and append to doctor report
           PR_NUMBER=${{ github.event.pull_request.number }}
-          
           echo "Scraping AI review comments from PR #$PR_NUMBER..."
-          
+
           # Get PR head SHA for validation
           PR_HEAD_SHA=${{ github.event.pull_request.head.sha }}
           echo "PR head SHA: $PR_HEAD_SHA"
-          
+
           # Get AI review comment content with anti-poisoning validation
           AI_REVIEW_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
-            --jq --arg sha "$PR_HEAD_SHA" '.[] | 
-            select(.user.login == "github-actions[bot]") | 
-            select(.body | contains("<!-- ai-review:v1") and contains($sha)) | 
-            .body' 2>/dev/null | head -1 || echo "")
-          
+            --jq --arg sha "$PR_HEAD_SHA" '.[] |
+            select(.user.login == "github-actions[bot]") |
+            select(.body | contains("<!-- ai-review:v1") and contains($sha)) |
+            .body' 2>/dev/null || true)
+
           # Get AI security review comment content with anti-poisoning validation
           AI_SEC_CONTENT=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
-            --jq --arg sha "$PR_HEAD_SHA" '.[] | 
-            select(.user.login == "github-actions[bot]") | 
-            select(.body | contains("<!-- ai-sec-review:v1") and contains($sha)) | 
-            .body' 2>/dev/null | head -1 || echo "")
-          
+            --jq --arg sha "$PR_HEAD_SHA" '.[] |
+            select(.user.login == "github-actions[bot]") |
+            select(.body | contains("<!-- ai-sec-review:v1") and contains($sha)) |
+            .body' 2>/dev/null || true)
+
           # Extract and append AI review content
           if [ -n "$AI_REVIEW_CONTENT" ]; then
             echo "Found AI review comment, extracting content..."
@@ -86,7 +85,7 @@ jobs:
               sed '1d;$d' >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
-          
+
           # Extract and append AI security review content
           if [ -n "$AI_SEC_CONTENT" ]; then
             echo "Found AI security review comment, extracting content..."
@@ -94,19 +93,21 @@ jobs:
               sed '1d;$d' >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
-          
-          # Add separator if any AI content was found
+
+          # Add separator if any AI content was found; otherwise append a literal fallback block
           if [ -n "$AI_REVIEW_CONTENT" ] || [ -n "$AI_SEC_CONTENT" ]; then
             echo "---" >> artifacts/doctor-report.md
             echo "*AI reviews aggregated by comment-scrape pipeline*" >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           else
             # Graceful fallback - AI review not available but don't block CI
-            echo "## ℹ️ AI Review Status" >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
-            echo "AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})" >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
-            echo "> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment." >> artifacts/doctor-report.md
+            printf '%s\n' \
+              '## ℹ️ AI Review Status' \
+              '' \
+              'AI review not available for this PR (no matching comments found for the current head SHA).' \
+              '' \
+              '> Advisory AI reviews are optional and don'"'"'t affect CI status. Trigger with `@claude /review` in a PR comment.' \
+              >> artifacts/doctor-report.md
             echo "" >> artifacts/doctor-report.md
           fi
 
@@ -282,16 +283,16 @@ jobs:
           # Get PR head ref
           HEAD_REF="${{ github.event.pull_request.head.ref }}"
           echo "Head ref: $HEAD_REF"
-          
+
           # Check if this is a bot branch
           if [[ "$HEAD_REF" == bots/claude/* ]]; then
             echo "🤖 Bot branch detected: $HEAD_REF"
             echo "🔍 Checking for 'promote' label requirement..."
-            
+
             # Check if PR has promote label
-            LABELS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.labels[].name')
-            
-            if echo "$LABELS" | grep -q "promote"; then
+            LABELS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.labels[]?.name' || true)
+
+            if echo "$LABELS" | grep -qi "^promote$"; then
               echo "✅ 'promote' label found - bot PR approved for merge"
               exit 0
             else
