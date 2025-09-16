@@ -19,7 +19,7 @@ jobs:
       - name: Load template
         id: tpl
         run: |
-          echo "TEMPLATE<<EOF" >> $GITHUB_OUTPUT
+          echo "TEMPLATE<<'EOF'" >> $GITHUB_OUTPUT
           cat .github/pull_request_template.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
