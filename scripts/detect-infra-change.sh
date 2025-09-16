@@ -29,7 +29,9 @@ if [[ -z "$CHANGED" ]]; then
 fi
 
 echo "Changed files:"
-echo "$CHANGED" | sed 's/^/  - /'
+while IFS= read -r _f; do
+  [ -n "$_f" ] && echo "  - $_f"
+done <<< "$CHANGED"
 
 # Check if all files match infrastructure patterns
 is_infra=true

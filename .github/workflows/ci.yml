@@ -97,17 +97,21 @@ jobs:
           
           # Add separator if any AI content was found
           if [ -n "$AI_REVIEW_CONTENT" ] || [ -n "$AI_SEC_CONTENT" ]; then
-            echo "---" >> artifacts/doctor-report.md
-            echo "*AI reviews aggregated by comment-scrape pipeline*" >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
+            {
+              echo "---"
+              echo "*AI reviews aggregated by comment-scrape pipeline*"
+              echo ""
+            } >> artifacts/doctor-report.md
           else
             # Graceful fallback - AI review not available but don't block CI
-            echo "## ℹ️ AI Review Status" >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
-            echo "AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})" >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
-            echo "> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment." >> artifacts/doctor-report.md
-            echo "" >> artifacts/doctor-report.md
+            cat >> artifacts/doctor-report.md <<EOF
+## ℹ️ AI Review Status
+
+AI review not available for this PR (no matching comments found for SHA: ${PR_HEAD_SHA:0:8})
+
+> Advisory AI reviews are optional and don't affect CI status. Trigger with \`@claude /review\` comment.
+
+EOF
           fi
 
       - uses: actions/upload-artifact@v4
@@ -234,11 +238,10 @@ jobs:
 
       - name: Check if E2E needed
         run: |
-          if [[ "$IS_INFRA_CHANGE" == "true" ]]; then
-            echo "🔧 Infrastructure-only PR: Skipping E2E tests"
-            echo "✅ No application code changes detected, E2E tests not needed"
-            echo "SKIP_E2E=true" >> "$GITHUB_ENV"
-          fi
+          [[ "$IS_INFRA_CHANGE" == "true" ]] || exit 0
+          echo "🔧 Infrastructure-only PR: Skipping E2E tests"
+          echo "✅ No application code changes detected, E2E tests not needed"
+          echo "SKIP_E2E=true" >> "$GITHUB_ENV"
 
       - name: Setup pnpm
         if: env.SKIP_E2E != 'true'
@@ -279,9 +282,9 @@ jobs:
       - name: Check promote label for bot PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          # Get PR head ref
-          HEAD_REF="${{ github.event.pull_request.head.ref }}"
+          # Get PR head ref (from environment, not inline)
           echo "Head ref: $HEAD_REF"
           
           # Check if this is a bot branch
