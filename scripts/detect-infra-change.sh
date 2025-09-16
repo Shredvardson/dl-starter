@@ -19,8 +19,22 @@ if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Get changed files
-CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>/dev/null || true)
+# Ensure merge-base exists, attempt to deepen if needed
+if ! git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
+  echo "::warning::No merge-base found between $BASE and $HEAD, attempting to deepen fetch"
+  git fetch --deepen=50 origin "${GITHUB_BASE_REF:-main}" 2>/dev/null || true
+  
+  if ! git merge-base "$BASE" "$HEAD" >/dev/null 2>&1; then
+    echo "::error::Cannot compute merge-base between $BASE and $HEAD even after deepening fetch"
+    exit 1
+  fi
+fi
+
+# Get changed files with proper error handling
+if ! CHANGED=$(git diff --name-only "$BASE...$HEAD" 2>&1); then
+  echo "::error::Failed to get diff between $BASE and $HEAD: $CHANGED" >&2
+  exit 1
+fi
 
 if [[ -z "$CHANGED" ]]; then
   echo "No changes detected, treating as non-infra"
