@@ -17,11 +17,18 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Load template
-        id: tpl
+        id: load_template
+        shell: bash
         run: |
-          echo "TEMPLATE<<EOF" >> $GITHUB_OUTPUT
-          cat .github/pull_request_template.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo 'TEMPLATE<<EOF'
+            cat .github/pull_request_template.md
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Preview template first 5 lines
+        run: |
+          echo "${{ steps.load_template.outputs.TEMPLATE }}" | head -n 5
 
       - name: Patch PR body if missing/placeholder
         uses: actions/github-script@v7
@@ -42,4 +49,4 @@ jobs:
               core.info("PR body looks good. No change.");
             }
         env:
-          TEMPLATE: ${{ steps.tpl.outputs.TEMPLATE }}
+          TEMPLATE: ${{ steps.load_template.outputs.TEMPLATE }}
