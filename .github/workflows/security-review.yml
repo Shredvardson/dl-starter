@@ -122,27 +122,34 @@ jobs:
         OUTPUT_TOKENS=420
         COST_USD="0.0096"
         
-        # Create security report section using printf to avoid YAML issues
-        printf '\n## 🛡️ AI Security Review (Advisory)  \n\n' >> artifacts/doctor-report.md
-        printf '**Generated:** %s\n' "$SCAN_TIME" >> artifacts/doctor-report.md
-        printf '**PR:** #%s\n' "${{ github.event.pull_request.number }}" >> artifacts/doctor-report.md
-        printf '**Mode:** Advisory (non-blocking)\n\n' >> artifacts/doctor-report.md
-        printf '### 📊 Cost & Model Telemetry\n' >> artifacts/doctor-report.md
-        printf -- '- **Model:** %s\n' "$MODEL_NAME" >> artifacts/doctor-report.md
-        printf -- '- **Input Tokens:** %s\n' "$INPUT_TOKENS" >> artifacts/doctor-report.md
-        printf -- '- **Output Tokens:** %s\n' "$OUTPUT_TOKENS" >> artifacts/doctor-report.md
-        printf -- '- **Estimated Cost:** $%s USD\n' "$COST_USD" >> artifacts/doctor-report.md
-        printf -- '- **Completed:** %s\n' "$SCAN_TIME" >> artifacts/doctor-report.md
-        printf -- '- **Scope:** Apps and packages (code files only)\n' >> artifacts/doctor-report.md
-        printf -- '- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_\n\n' >> artifacts/doctor-report.md
-        printf '### Security Analysis Completed\n\n' >> artifacts/doctor-report.md
-        printf -- '- ✅ **Input Validation**: Checked for injection vulnerabilities\n' >> artifacts/doctor-report.md
-        printf -- '- ✅ **Authentication**: Reviewed auth/authz patterns  \n' >> artifacts/doctor-report.md
-        printf -- '- ✅ **Data Protection**: Analyzed data exposure risks\n' >> artifacts/doctor-report.md
-        printf -- '- ✅ **Code Security**: Scanned for XSS/CSRF vulnerabilities\n' >> artifacts/doctor-report.md
-        printf -- '- ✅ **Infrastructure**: Reviewed config and env security\n\n' >> artifacts/doctor-report.md
-        printf '> **Authority**: CodeQL and human review remain the authoritative security gates.\n' >> artifacts/doctor-report.md
-        printf '> AI review provides additional semantic analysis for vulnerability detection.\n' >> artifacts/doctor-report.md
+        cat <<EOF >> artifacts/doctor-report.md
+
+## 🛡️ AI Security Review (Advisory)  
+
+**Generated:** $SCAN_TIME
+**PR:** #${{ github.event.pull_request.number }}
+**Mode:** Advisory (non-blocking)
+
+### 📊 Cost & Model Telemetry
+- **Model:** $MODEL_NAME
+- **Input Tokens:** $INPUT_TOKENS
+- **Output Tokens:** $OUTPUT_TOKENS
+- **Estimated Cost:** \$$COST_USD USD
+- **Completed:** $SCAN_TIME
+- **Scope:** Apps and packages (code files only)
+- **Signal Quality:** ⚠️ _Tag security findings as ✅ useful / ⚠️ noisy_
+
+### Security Analysis Completed
+
+- ✅ **Input Validation**: Checked for injection vulnerabilities
+- ✅ **Authentication**: Reviewed auth/authz patterns  
+- ✅ **Data Protection**: Analyzed data exposure risks
+- ✅ **Code Security**: Scanned for XSS/CSRF vulnerabilities
+- ✅ **Infrastructure**: Reviewed config and env security
+
+> **Authority**: CodeQL and human review remain the authoritative security gates.
+> AI review provides additional semantic analysis for vulnerability detection.
+EOF
         
     - name: Apply Security Review Label
       if: success()
