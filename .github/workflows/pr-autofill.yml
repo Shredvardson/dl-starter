@@ -24,7 +24,7 @@ jobs:
 
       - name: Load template
         id: tpl
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           result-encoding: string
           script: |
@@ -32,7 +32,7 @@ jobs:
             return fs.readFileSync('.github/pull_request_template.md', 'utf8');
 
       - name: Patch PR body if missing/placeholder
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             // Current PR body
