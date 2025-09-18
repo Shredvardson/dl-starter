@@ -1,8 +1,24 @@
+# Constitutional and governance files - Require explicit review
+docs/constitution.md @Shredvardson
+docs/llm/risk-policy.json @Shredvardson
+docs/llm/context-map.json @Shredvardson
+docs/llm/CONSTITUTION.CHECKSUM @Shredvardson
+
+# Command system and CI contracts
+.claude/commands/ @Shredvardson
+docs/commands/index.json @Shredvardson
+scripts/generate-command-index.js @Shredvardson
+.github/workflows/routing-contract.yml @Shredvardson
+.github/workflows/spec-guard.yml @Shredvardson
+
 # Critical Infrastructure - Require maintainer review
 /.github/workflows/** @Shredvardson
 /scripts/release/** @Shredvardson
 /.env* @Shredvardson
 /**/.env* @Shredvardson
+
+# Security and environment policies
+scripts/pretest-env-check.ts @Shredvardson
 
 # General codebase
 * @Shredvardson
