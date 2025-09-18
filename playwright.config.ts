@@ -6,9 +6,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   use: { baseURL: 'http://localhost:3000' },
   webServer: {
-    command: 'pnpm -C apps/web start',
+    command: 'pnpm -C apps/web dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      NEXT_PUBLIC_ENABLE_ANALYTICS: 'true',
+    },
   },
 });
