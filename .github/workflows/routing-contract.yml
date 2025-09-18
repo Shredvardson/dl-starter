@@ -83,18 +83,24 @@ jobs:
       run: |
         echo "🔍 Checking command index sync..."
         
-        # Generate fresh command index and compare
+        # Generate fresh command index and compare (ignoring timestamp)
         node scripts/generate-command-index.js
         
-        if ! git diff --exit-code docs/commands/index.json; then
+        # Create temp files without timestamp for comparison
+        jq 'del(.generated)' docs/commands/index.json > /tmp/index-current.json
+        git show HEAD:docs/commands/index.json | jq 'del(.generated)' > /tmp/index-original.json
+        
+        if ! diff -q /tmp/index-current.json /tmp/index-original.json > /dev/null; then
           {
-            echo "❌ Command index is out of sync with actual command files"
+            echo "❌ Command index structure is out of sync with actual command files"
             echo "Run: npm run commands:generate"
-            git diff docs/commands/index.json
+            echo ""
+            echo "Structural differences:"
+            diff /tmp/index-current.json /tmp/index-original.json || true
           }
           exit 1
         else
-          echo "✅ Command index is in sync"
+          echo "✅ Command index structure is in sync"
         fi
 
     - name: Check issue template artifact references
