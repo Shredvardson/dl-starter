@@ -109,27 +109,32 @@ jobs:
         
         node -e "
           const fs = require('fs');
-          const glob = require('glob');
+          const path = require('path');
           let errors = 0;
           
-          // Find all issue templates
-          const templates = glob.sync('.github/ISSUE_TEMPLATE/*.yml');
+          // Find all issue templates using native Node.js
+          const templateDir = '.github/ISSUE_TEMPLATE';
+          if (fs.existsSync(templateDir)) {
+            const templates = fs.readdirSync(templateDir)
+              .filter(f => f.endsWith('.yml'))
+              .map(f => path.join(templateDir, f));
           
-          for (const template of templates) {
-            console.log('Checking template:', template);
-            const content = fs.readFileSync(template, 'utf8');
-            
-            // Look for artifact path references
-            const specRefs = content.match(/specs\\/[^\\s\\n]+\\.md/g) || [];
-            const planRefs = content.match(/plans\\/[^\\s\\n]+\\.md/g) || [];
-            const taskRefs = content.match(/tasks\\/[^\\s\\n]+\\.md/g) || [];
-            
-            // For now, just verify the directories exist (files are created on-demand)
-            const dirs = ['specs', 'plans', 'tasks'];
-            for (const dir of dirs) {
-              if (!fs.existsSync(dir)) {
-                console.error('❌ Required directory missing:', dir);
-                errors++;
+            for (const template of templates) {
+              console.log('Checking template:', template);
+              const content = fs.readFileSync(template, 'utf8');
+              
+              // Look for artifact path references
+              const specRefs = content.match(/specs\/[^\s\n]+\.md/g) || [];
+              const planRefs = content.match(/plans\/[^\s\n]+\.md/g) || [];
+              const taskRefs = content.match(/tasks\/[^\s\n]+\.md/g) || [];
+              
+              // For now, just verify the directories exist (files are created on-demand)
+              const dirs = ['specs', 'plans', 'tasks'];
+              for (const dir of dirs) {
+                if (!fs.existsSync(dir)) {
+                  console.error('❌ Required directory missing:', dir);
+                  errors++;
+                }
               }
             }
           }
