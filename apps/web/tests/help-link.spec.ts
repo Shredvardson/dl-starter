@@ -15,7 +15,8 @@ test.describe('Help Link', () => {
 
     // Check that target and rel attributes are set correctly for security
     await expect(helpLink).toHaveAttribute('target', '_blank');
-    await expect(helpLink).toHaveAttribute('rel', 'noopener noreferrer');
+    const rel = (await helpLink.getAttribute('rel')) || '';
+    expect(rel.split(/\s+/)).toEqual(expect.arrayContaining(['noopener', 'noreferrer']));
 
     // Test that the link responds with 200 (using HEAD request to avoid following redirect)
     const linkUrl = await helpLink.getAttribute('href');
