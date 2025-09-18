@@ -1,0 +1,2 @@
+# This file keeps the specs/ folder in git when empty
+# Specs are created on-demand via the /specify command

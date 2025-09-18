@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MCP Risk Policy",
+  "description": "Machine-readable risk assessment and operational policies for AI-powered development workflows",
+  "version": "1.0.0",
+  "lastUpdated": "2025-09-18",
+  
+  "riskFramework": {
+    "riskLevels": {
+      "LOW": {
+        "description": "Minimal risk, standard automation applies",
+        "approvalRequired": false,
+        "humanOversight": "post-hoc",
+        "timeoutMinutes": 5
+      },
+      "MEDIUM": {
+        "description": "Moderate risk, enhanced monitoring required",
+        "approvalRequired": false,
+        "humanOversight": "monitoring",
+        "timeoutMinutes": 10
+      },
+      "HIGH": {
+        "description": "High risk, human approval required",
+        "approvalRequired": true,
+        "humanOversight": "pre-approval",
+        "timeoutMinutes": 15
+      },
+      "CRITICAL": {
+        "description": "Critical risk, AI automation prohibited",
+        "approvalRequired": true,
+        "humanOversight": "mandatory",
+        "aiAutomationAllowed": false
+      }
+    }
+  },
+  
+  "pathRiskAssessment": {
+    "HIGH_RISK_PATHS": [
+      ".github/workflows/**",
+      "scripts/release/**",
+      ".env*",
+      "**/.env*",
+      "package.json",
+      "pnpm-lock.yaml",
+      "Dockerfile*",
+      "docker-compose*.yml",
+      "kubernetes/**",
+      "helm/**",
+      "terraform/**",
+      "scripts/ci/**"
+    ],
+    "MEDIUM_RISK_PATHS": [
+      "tsconfig*.json",
+      "*.config.*",
+      "scripts/**",
+      "bin/**",
+      "docs/constitution.md",
+      "SECURITY.md",
+      "LICENSE"
+    ],
+    "LOW_RISK_PATHS": [
+      "apps/**",
+      "packages/**",
+      "docs/**",
+      "tests/**",
+      "e2e/**",
+      "*.md",
+      "*.test.*",
+      "*.spec.*"
+    ]
+  },
+  
+  "operationalPolicies": {
+    "branchRestrictions": {
+      "allowedBranches": ["bots/claude/*"],
+      "prohibitedBranches": ["main", "master", "release/*", "hotfix/*"],
+      "description": "AI automation restricted to designated bot branches"
+    },
+    
+    "authorshipRules": {
+      "allowedAssociations": ["OWNER", "MEMBER", "COLLABORATOR"],
+      "botTriggerPolicy": "HUMAN_ONLY",
+      "description": "Only trusted contributors can trigger AI workflows"
+    },
+    
+    "qualityGates": {
+      "requiredChecks": [
+        "starter-doctor",
+        "typescript-check",
+        "lint",
+        "test-unit",
+        "test-e2e"
+      ],
+      "securityChecks": [
+        "security-scan",
+        "dependency-audit",
+        "secrets-scan"
+      ],
+      "performanceChecks": [
+        "bundle-size",
+        "build-time"
+      ]
+    },
+    
+    "promotionRequirements": {
+      "labelRequired": "promote",
+      "maintainerApproval": true,
+      "qualityGatesPassed": true,
+      "description": "AI PRs require explicit human promotion"
+    }
+  },
+  
+  "securityPolicies": {
+    "secretsManagement": {
+      "prohibitedInCode": [
+        "api_key",
+        "secret_key",
+        "password",
+        "token",
+        "credential",
+        "private_key"
+      ],
+      "environmentVariables": {
+        "allowedPrefixes": ["NEXT_PUBLIC_", "PUBLIC_"],
+        "prohibitedPrefixes": ["SECRET_", "PRIVATE_", "SENTRY_"]
+      }
+    },
+    
+    "inputValidation": {
+      "userInputSources": [
+        "form_data",
+        "url_parameters",
+        "api_requests",
+        "file_uploads"
+      ],
+      "requiredValidation": [
+        "input_sanitization",
+        "type_checking",
+        "length_limits",
+        "pattern_matching"
+      ]
+    },
+    
+    "dependencyManagement": {
+      "allowedRegistries": ["npmjs.org", "github.com"],
+      "prohibitedPackages": [],
+      "securityAudit": {
+        "frequency": "weekly",
+        "autoUpdate": "patch_only",
+        "manualReview": "major_minor"
+      }
+    }
+  },
+  
+  "monitoringAndTelemetry": {
+    "errorTracking": {
+      "provider": "sentry",
+      "environment": ["development", "staging", "production"],
+      "piiPolicy": "EXCLUDE",
+      "retentionDays": 90
+    },
+    
+    "performanceMonitoring": {
+      "metrics": [
+        "response_time",
+        "throughput",
+        "error_rate",
+        "bundle_size"
+      ],
+      "alerting": {
+        "enabled": true,
+        "thresholds": {
+          "error_rate": "5%",
+          "response_time": "2000ms",
+          "bundle_size": "500kb"
+        }
+      }
+    },
+    
+    "aiWorkflowTelemetry": {
+      "trackEvents": [
+        "workflow_triggered",
+        "review_completed",
+        "security_scan_finished",
+        "promotion_requested"
+      ],
+      "metrics": [
+        "processing_time",
+        "success_rate",
+        "false_positive_rate",
+        "human_override_rate"
+      ]
+    }
+  },
+  
+  "complianceFramework": {
+    "dataProtection": {
+      "gdprCompliance": true,
+      "ccpaCompliance": true,
+      "dataMinimization": true,
+      "userConsent": "explicit"
+    },
+    
+    "licenseCompliance": {
+      "primaryLicense": "MIT",
+      "allowedLicenses": [
+        "MIT",
+        "Apache-2.0",
+        "BSD-3-Clause",
+        "ISC"
+      ],
+      "prohibitedLicenses": [
+        "GPL-3.0",
+        "AGPL-3.0",
+        "SSPL"
+      ]
+    },
+    
+    "auditRequirements": {
+      "logRetention": "365 days",
+      "auditEvents": [
+        "ai_workflow_execution",
+        "human_override",
+        "security_incident",
+        "compliance_violation"
+      ],
+      "reportingFrequency": "weekly"
+    }
+  },
+  
+  "incidentResponse": {
+    "escalationMatrix": {
+      "LOW": {
+        "response_time": "24 hours",
+        "assignee": "on_call_developer"
+      },
+      "MEDIUM": {
+        "response_time": "4 hours",
+        "assignee": "team_lead"
+      },
+      "HIGH": {
+        "response_time": "1 hour",
+        "assignee": "security_team"
+      },
+      "CRITICAL": {
+        "response_time": "15 minutes",
+        "assignee": "incident_commander"
+      }
+    },
+    
+    "automatedResponse": {
+      "rollbackTriggers": [
+        "security_vulnerability_detected",
+        "performance_degradation",
+        "error_rate_spike"
+      ],
+      "notificationChannels": [
+        "slack",
+        "email",
+        "pagerduty"
+      ]
+    }
+  },
+  
+  "validationRules": {
+    "configurationValidation": {
+      "required": ["version", "lastUpdated", "riskFramework"],
+      "versionFormat": "^\\d+\\.\\d+\\.\\d+$",
+      "dateFormat": "YYYY-MM-DD"
+    },
+    
+    "policyEnforcement": {
+      "automated": true,
+      "fallbackToManual": true,
+      "overrideAuthority": "maintainer",
+      "appealProcess": true
+    }
+  }
+}

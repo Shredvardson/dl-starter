@@ -1,0 +1,386 @@
+#!/usr/bin/env node
+
+/**
+ * Generate standardized Spec Kit artifacts with YYYYMMDD naming
+ * Creates specs/, plans/, tasks/ files and updates GitHub issue
+ */
+
+import fs from 'fs';
+import { execSync } from 'child_process';
+
+// Get command line arguments
+const args = process.argv.slice(2);
+if (args.length === 0) {
+  console.error('Usage: node scripts/new-spec.mjs <feature-slug> [issue-number] [--lane=spec|simple]');
+  console.error('Example: node scripts/new-spec.mjs user-authentication 123 --lane=spec');
+  console.error('Example: node scripts/new-spec.mjs button-fix --lane=simple');
+  process.exit(1);
+}
+
+const slug = args[0];
+
+// Parse issue number and lane arguments more carefully
+let issueNumber = null;
+let laneFlag = null;
+
+// Process remaining arguments
+for (let i = 1; i < args.length; i++) {
+  const arg = args[i];
+  if (arg.startsWith('--lane=')) {
+    laneFlag = arg.split('=')[1];
+  } else if (!issueNumber && /^\d+$/.test(arg)) {
+    issueNumber = arg;
+  }
+}
+
+// Enhanced issue number extraction
+function extractIssueNumber() {
+  if (issueNumber) return issueNumber;
+  
+  // Try to extract from branch name (feature/spec-123-slug or feature/simple-123-slug)
+  try {
+    const branchName = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+    const branchMatch = branchName.match(/feature\/(?:spec|simple)-(\d+)-/);
+    if (branchMatch) {
+      return branchMatch[1];
+    }
+  } catch (error) {
+    // Not in git repo
+  }
+  
+  // Try to extract from last commit message
+  try {
+    const lastCommit = execSync('git log -1 --pretty=%B', { encoding: 'utf8' }).trim();
+    const commitMatch = lastCommit.match(/#(\d+)/);
+    if (commitMatch) {
+      return commitMatch[1];
+    }
+  } catch (error) {
+    // Not in git repo or no commits
+  }
+  
+  // Could also check PR body in CI context via GITHUB_EVENT_PATH
+  if (process.env.GITHUB_EVENT_PATH) {
+    try {
+      const eventData = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+      if (eventData.pull_request?.body) {
+        const prMatch = eventData.pull_request.body.match(/#(\d+)/);
+        if (prMatch) {
+          return prMatch[1];
+        }
+      }
+    } catch (error) {
+      // Event file not found or invalid
+    }
+  }
+  
+  return null;
+}
+
+issueNumber = extractIssueNumber();
+
+// Determine workflow lane
+function inferLane() {
+  // Check explicit flag (parsed above)
+  if (laneFlag) {
+    return laneFlag;
+  }
+  
+  // Check environment variable
+  if (process.env.LANE) {
+    return process.env.LANE;
+  }
+  
+  // Infer from branch name (feature/spec-* vs feature/simple-*)
+  try {
+    const branchName = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+    if (branchName.startsWith('feature/spec-')) return 'spec';
+    if (branchName.startsWith('feature/simple-')) return 'simple';
+  } catch (error) {
+    // Not in a git repo or other error
+  }
+  
+  // Default to spec for safety (explicit creation)
+  return 'spec';
+}
+
+const lane = inferLane();
+
+// Exit early for simple workflow - don't create spec artifacts
+if (lane === 'simple') {
+  console.log('🚀 Simple workflow detected - no spec artifacts needed');
+  console.log('💡 Use /dev:plan-feature command for lightweight planning');
+  console.log('📝 Focus on: small scope, existing files, minimal risk');
+  process.exit(0);
+}
+const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+
+// Generate file paths
+const specPath = `specs/${timestamp}-${slug}.md`;
+const planPath = `plans/${timestamp}-${slug}.md`;
+const taskPath = `tasks/${timestamp}-${slug}.md`;
+
+console.log(`🏗️ Creating Spec Kit artifacts for ${lane} workflow...`);
+console.log(`📋 Spec: ${specPath}`);
+console.log(`🏛️ Plan: ${planPath}`);
+console.log(`✅ Tasks: ${taskPath}`);
+
+// Create directories if they don't exist
+['specs', 'plans', 'tasks'].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+// Generate specification template
+const specTemplate = `# Feature Specification: ${slug.replace(/-/g, ' ')}
+
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
+**Status:** Draft
+
+## User Need
+[NEEDS_CLARIFICATION] What problem does this solve? Why is it important?
+
+## Functional Requirements  
+[NEEDS_CLARIFICATION] What should the feature do? (user perspective only)
+
+## User Experience
+[NEEDS_CLARIFICATION] How should users interact with this feature?
+
+## Success Criteria
+[NEEDS_CLARIFICATION] How will we know this feature works well?
+- [ ] 
+- [ ] 
+- [ ] 
+
+## Out of Scope
+[NEEDS_CLARIFICATION] What are we explicitly not building?
+
+## Clarifications Needed
+- [NEEDS_CLARIFICATION] 
+- [NEEDS_CLARIFICATION] 
+
+## Links
+- **Technical Plan:** [${planPath}](../${planPath})
+- **Task Breakdown:** [${taskPath}](../${taskPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
+
+---
+*Generated by \`scripts/new-spec.mjs\` - Use \`/plan\` command to create technical implementation*`;
+
+// Generate plan template  
+const planTemplate = `# Technical Plan: ${slug.replace(/-/g, ' ')}
+
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Specification:** [${specPath}](../${specPath})
+**Status:** Draft
+
+## Architecture Decision  
+How does this fit within our Next.js/TypeScript/Tailwind stack?
+
+## File Changes Required
+- Files to modify: 
+- New files needed: 
+- Database changes: 
+
+## Implementation Strategy
+- Component structure and patterns
+- State management approach  
+- API design (if needed)
+- Integration points with existing code
+
+## Testing Strategy
+Following TDD order from constitution:
+1. **Contract tests:** Define interfaces
+2. **Integration tests:** Component interactions  
+3. **E2E tests:** User workflows
+4. **Unit tests:** Business logic
+
+## Security Considerations
+- Input validation requirements
+- Authentication/authorization needs
+- Data protection patterns
+- Rate limiting considerations
+
+## Dependencies
+- Existing packages to leverage
+- New packages needed (with justification)
+- Version compatibility checks
+
+## Risks & Mitigation
+- Technical risks and solutions
+- Breaking change potential
+- Performance implications
+
+## Links
+- **Specification:** [${specPath}](../${specPath})
+- **Task Breakdown:** [${taskPath}](../${taskPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
+
+---
+*Generated by \`scripts/new-spec.mjs\` - Use \`/tasks\` command to create implementation breakdown*`;
+
+// Generate tasks template
+const taskTemplate = `# Implementation Tasks: ${slug.replace(/-/g, ' ')}
+
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Plan:** [${planPath}](../${planPath})
+**Status:** Ready for Implementation
+
+## Task Breakdown
+
+### Phase 1: Contracts & Interfaces
+- [ ] **Task 1.1:** Define TypeScript interfaces
+  - Files: \`src/types/${slug}.ts\`
+  - Acceptance: Type contracts for all data structures
+  
+- [ ] **Task 1.2:** Create API contracts (if needed)
+  - Files: \`src/api/[endpoints].ts\`
+  - Acceptance: Request/response types defined
+
+### Phase 2: Test Foundation  
+- [ ] **Task 2.1:** Integration test setup
+  - Files: \`tests/integration/${slug}.test.ts\`
+  - Acceptance: Test infrastructure and happy path
+
+- [ ] **Task 2.2:** E2E test scenarios
+  - Files: \`tests/e2e/${slug}.spec.ts\`  
+  - Acceptance: User workflow testing
+
+- [ ] **Task 2.3:** Unit test scaffolds
+  - Files: \`tests/unit/[components].test.ts\`
+  - Acceptance: Test files created, ready for TDD
+
+### Phase 3: Implementation
+- [ ] **Task 3.1:** Core components  
+  - Files: \`src/components/${slug}/\`
+  - Acceptance: Components pass integration tests
+
+- [ ] **Task 3.2:** Business logic
+  - Files: \`src/lib/${slug}/\`
+  - Acceptance: Logic passes unit tests
+
+- [ ] **Task 3.3:** API integration (if needed)
+  - Files: \`src/api/\`, \`src/hooks/\`
+  - Acceptance: Data flow works end-to-end
+
+### Phase 4: Integration & Polish
+- [ ] **Task 4.1:** UI integration
+  - Files: Page and layout updates
+  - Acceptance: Feature accessible in UI
+
+- [ ] **Task 4.2:** Error handling & validation
+  - Files: Error boundaries, form validation
+  - Acceptance: Graceful error states
+
+### Phase 5: Documentation & Release
+- [ ] **Task 5.1:** Update documentation
+  - Files: \`docs/\`, wiki pages, \`context-map.json\`
+  - Acceptance: Documentation current
+
+- [ ] **Task 5.2:** Security review
+  - Command: \`/dev:refactor-secure\`
+  - Acceptance: Security patterns validated
+
+## Implementation Commands
+1. Use \`/test:scaffold\` for each test file
+2. Use \`/dev:implement\` for each implementation task  
+3. Use \`/quality:run-linter\` after each phase
+4. Use \`/git:commit\` with conventional commit messages
+
+## Branch Strategy
+- Branch name: \`feature/${timestamp}-${slug}\`
+- Commit per task completion
+- PR when all tasks complete
+
+## Links
+- **Specification:** [${specPath}](../${specPath})
+- **Technical Plan:** [${planPath}](../${planPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
+
+---
+*Generated by \`scripts/new-spec.mjs\` - Ready for implementation using existing commands*`;
+
+// Write all files
+fs.writeFileSync(specPath, specTemplate);
+fs.writeFileSync(planPath, planTemplate);
+fs.writeFileSync(taskPath, taskTemplate);
+
+console.log('✅ All artifacts created successfully');
+
+// Update GitHub issue if provided
+if (issueNumber) {
+  try {
+    console.log(`🔗 Updating GitHub issue #${issueNumber}...`);
+    
+    // Check if issue exists first
+    const checkCommand = `gh issue view ${issueNumber} --json number`;
+    execSync(checkCommand, { stdio: 'pipe' });
+    
+    const repoUrl = process.env.GITHUB_REPOSITORY 
+      ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
+      : 'https://github.com/dissonance-labs/dl-starter-new';
+    
+    const updateCommand = `gh issue comment ${issueNumber} --body "📋 **Spec Kit Artifacts Created**
+
+**Generated:** ${new Date().toISOString().slice(0, 10)}
+**Workflow:** ${lane}
+
+🔗 **Artifacts:**
+- **Specification:** [\`${specPath}\`](${repoUrl}/blob/main/${specPath})
+- **Technical Plan:** [\`${planPath}\`](${repoUrl}/blob/main/${planPath})  
+- **Task Breakdown:** [\`${taskPath}\`](${repoUrl}/blob/main/${taskPath})
+
+📝 **Next Steps:**
+1. Fill out specification details (focus on WHAT and WHY)
+2. Use \`/plan\` command to complete technical implementation
+3. Use \`/tasks\` command to finalize implementation breakdown
+4. Create feature branch: \`feature/${timestamp}-${slug}\`
+
+*Artifacts follow YYYYMMDD naming convention for easy discovery and cross-referencing.*"`;
+
+    execSync(updateCommand, { stdio: 'inherit' });
+    console.log('✅ GitHub issue updated with artifact links');
+    
+  } catch (error) {
+    console.warn('⚠️ Could not update GitHub issue:', error.message);
+    if (error.message.includes('Could not resolve')) {
+      console.log(`💡 Issue #${issueNumber} not found. Create it first with:`);
+      console.log(`   gh issue create --title "${slug.replace(/-/g, ' ')}" --body "Feature request"`);
+    } else {
+      console.log('💡 Run manually: gh issue comment', issueNumber, '--body="Spec Kit artifacts created"');
+    }
+  }
+} else {
+  console.log('ℹ️ No issue number provided or detected');
+  console.log('💡 To link artifacts to an issue:');
+  console.log('   1. Create issue: gh issue create --title "Feature" --body "Description"');
+  console.log('   2. Re-run with issue number: node scripts/new-spec.mjs', slug, '<issue-number>');
+  console.log('   3. Or use branch naming: feature/spec-123-' + slug);
+}
+
+console.log(`
+🎉 Spec Kit scaffold complete!
+
+📁 Files created:
+  ${specPath}
+  ${planPath}  
+  ${taskPath}
+
+📋 Next steps:
+1. Edit ${specPath} to define requirements
+2. Use /plan command to complete technical details
+3. Use /tasks command to finalize implementation
+4. Create feature branch: git checkout -b feature/${timestamp}-${slug}
+
+🔍 All files use YYYYMMDD naming for easy discovery and searching.
+`);
+
+// Add to git if in a git repository
+try {
+  execSync('git add ' + [specPath, planPath, taskPath].join(' '), { stdio: 'pipe' });
+  console.log('✅ Files added to git staging');
+} catch (error) {
+  console.log('ℹ️ Files created but not added to git (not in git repository)');
+}

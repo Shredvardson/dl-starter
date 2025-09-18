@@ -1,0 +1,448 @@
+name: Weekly Telemetry Report
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      date_range:
+        description: 'Date range for report (days)'
+        required: false
+        default: '7'
+        type: string
+      include_detailed_analysis:
+        description: 'Include detailed analysis'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: read
+
+jobs:
+  generate-telemetry-report:
+    name: Generate Telemetry Report
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set report parameters
+        id: params
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "date-range=${{ github.event.inputs.date_range }}" >> $GITHUB_OUTPUT
+            echo "detailed-analysis=${{ github.event.inputs.include_detailed_analysis }}" >> $GITHUB_OUTPUT
+          else
+            echo "date-range=7" >> $GITHUB_OUTPUT
+            echo "detailed-analysis=true" >> $GITHUB_OUTPUT
+          fi
+          
+          end_date=$(date -u +"%Y-%m-%d")
+          start_date=$(date -u -d "${{ github.event.inputs.date_range || '7' }} days ago" +"%Y-%m-%d")
+          
+          echo "start-date=$start_date" >> $GITHUB_OUTPUT
+          echo "end-date=$end_date" >> $GITHUB_OUTPUT
+          
+          echo "Report period: $start_date to $end_date"
+
+      - name: Collect repository metrics
+        id: repo-metrics
+        run: |
+          echo "Collecting repository metrics..."
+          
+          start_date="${{ steps.params.outputs.start-date }}"
+          end_date="${{ steps.params.outputs.end-date }}"
+          
+          # Commit activity
+          commits_count=$(git log --since="$start_date" --until="$end_date" --oneline | wc -l)
+          echo "commits-count=$commits_count" >> $GITHUB_OUTPUT
+          
+          # Author activity
+          authors_count=$(git log --since="$start_date" --until="$end_date" --format="%ae" | sort -u | wc -l)
+          echo "authors-count=$authors_count" >> $GITHUB_OUTPUT
+          
+          # File changes
+          files_changed=$(git log --since="$start_date" --until="$end_date" --name-only --pretty=format: | sort -u | wc -l)
+          echo "files-changed=$files_changed" >> $GITHUB_OUTPUT
+          
+          # Lines of code changes
+          additions=$(git log --since="$start_date" --until="$end_date" --numstat --pretty=format: | awk '{add+=$1} END {print add+0}')
+          deletions=$(git log --since="$start_date" --until="$end_date" --numstat --pretty=format: | awk '{del+=$2} END {print del+0}')
+          echo "lines-added=$additions" >> $GITHUB_OUTPUT
+          echo "lines-deleted=$deletions" >> $GITHUB_OUTPUT
+          
+          echo "Repository metrics collected:"
+          echo "  Commits: $commits_count"
+          echo "  Authors: $authors_count"
+          echo "  Files changed: $files_changed"
+          echo "  Lines added: $additions"
+          echo "  Lines deleted: $deletions"
+
+      - name: Collect AI workflow metrics
+        id: ai-metrics
+        run: |
+          echo "Collecting AI workflow metrics..."
+          
+          start_date="${{ steps.params.outputs.start-date }}"
+          end_date="${{ steps.params.outputs.end-date }}"
+          
+          # Initialize counters
+          ai_pr_count=0
+          ai_review_count=0
+          ai_security_scan_count=0
+          ai_promotion_count=0
+          
+          # Count AI-related PRs (bots/claude branches)
+          if command -v gh >/dev/null 2>&1; then
+            ai_prs=$(gh pr list --state all --json number,headRefName,createdAt --jq ".[] | select(.headRefName | startswith(\"bots/claude\")) | select(.createdAt >= \"$start_date\" and .createdAt <= \"$end_date\") | .number" 2>/dev/null || echo "")
+            ai_pr_count=$(echo "$ai_prs" | grep -c . || echo "0")
+          fi
+          
+          # Count workflow runs for AI-related workflows
+          if command -v gh >/dev/null 2>&1; then
+            # AI review workflow runs
+            ai_review_runs=$(gh run list --workflow="claude-review.yml" --created="$start_date..$end_date" --json databaseId 2>/dev/null | jq length || echo "0")
+            
+            # Security scan workflow runs
+            security_scan_runs=$(gh run list --workflow="security-review.yml" --created="$start_date..$end_date" --json databaseId 2>/dev/null | jq length || echo "0")
+            
+            ai_review_count=${ai_review_runs:-0}
+            ai_security_scan_count=${security_scan_runs:-0}
+          fi
+          
+          # Count promotion labels (approximation)
+          if command -v gh >/dev/null 2>&1; then
+            promoted_prs=$(gh pr list --state all --label "promote" --json number,createdAt --jq ".[] | select(.createdAt >= \"$start_date\" and .createdAt <= \"$end_date\") | .number" 2>/dev/null || echo "")
+            ai_promotion_count=$(echo "$promoted_prs" | grep -c . || echo "0")
+          fi
+          
+          echo "ai-pr-count=$ai_pr_count" >> $GITHUB_OUTPUT
+          echo "ai-review-count=$ai_review_count" >> $GITHUB_OUTPUT
+          echo "ai-security-scan-count=$ai_security_scan_count" >> $GITHUB_OUTPUT
+          echo "ai-promotion-count=$ai_promotion_count" >> $GITHUB_OUTPUT
+          
+          echo "AI workflow metrics collected:"
+          echo "  AI PRs: $ai_pr_count"
+          echo "  AI reviews: $ai_review_count"
+          echo "  Security scans: $ai_security_scan_count"
+          echo "  Promotions: $ai_promotion_count"
+
+      - name: Collect quality metrics
+        id: quality-metrics
+        run: |
+          echo "Collecting quality metrics..."
+          
+          start_date="${{ steps.params.outputs.start-date }}"
+          end_date="${{ steps.params.outputs.end-date }}"
+          
+          # Test coverage (if available)
+          test_coverage="N/A"
+          if [ -f "coverage/coverage-summary.json" ]; then
+            test_coverage=$(jq -r '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo "N/A")
+          fi
+          
+          # Build status
+          build_success_rate="N/A"
+          if command -v gh >/dev/null 2>&1; then
+            total_builds=$(gh run list --workflow="ci.yml" --created="$start_date..$end_date" --json conclusion 2>/dev/null | jq length || echo "0")
+            if [ "$total_builds" -gt 0 ]; then
+              successful_builds=$(gh run list --workflow="ci.yml" --created="$start_date..$end_date" --json conclusion 2>/dev/null | jq '[.[] | select(.conclusion == "success")] | length' || echo "0")
+              build_success_rate=$(echo "scale=2; $successful_builds * 100 / $total_builds" | bc -l 2>/dev/null || echo "N/A")
+            fi
+          fi
+          
+          # Security scan results
+          security_issues="N/A"
+          if [ -f "security-scan-results.json" ]; then
+            security_issues=$(jq '.total_issues // "N/A"' security-scan-results.json 2>/dev/null || echo "N/A")
+          fi
+          
+          echo "test-coverage=$test_coverage" >> $GITHUB_OUTPUT
+          echo "build-success-rate=$build_success_rate" >> $GITHUB_OUTPUT
+          echo "security-issues=$security_issues" >> $GITHUB_OUTPUT
+          
+          echo "Quality metrics collected:"
+          echo "  Test coverage: $test_coverage%"
+          echo "  Build success rate: $build_success_rate%"
+          echo "  Security issues: $security_issues"
+
+      - name: Generate telemetry report
+        run: |
+          echo "Generating comprehensive telemetry report..."
+          
+          # Get current timestamp
+          report_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          week_number=$(date -u +"%V")
+          
+          cat > telemetry-report.md << EOF
+          # Weekly Telemetry Report - Week $week_number
+          
+          **Report Period**: ${{ steps.params.outputs.start-date }} to ${{ steps.params.outputs.end-date }}  
+          **Generated**: $report_time  
+          **Repository**: ${{ github.repository }}  
+          
+          ## Executive Summary
+          
+          This automated report provides insights into development activity, AI workflow performance, and overall project health for the past ${{ steps.params.outputs.date-range }} days.
+          
+          ## Development Activity
+          
+          ### Repository Metrics
+          | Metric | Value |
+          |--------|-------|
+          | Total Commits | ${{ steps.repo-metrics.outputs.commits-count }} |
+          | Active Contributors | ${{ steps.repo-metrics.outputs.authors-count }} |
+          | Files Modified | ${{ steps.repo-metrics.outputs.files-changed }} |
+          | Lines Added | ${{ steps.repo-metrics.outputs.lines-added }} |
+          | Lines Deleted | ${{ steps.repo-metrics.outputs.lines-deleted }} |
+          | Net Change | $((${{ steps.repo-metrics.outputs.lines-added }} - ${{ steps.repo-metrics.outputs.lines-deleted }})) |
+          
+          ### Activity Analysis
+          EOF
+          
+          # Activity analysis
+          if [ ${{ steps.repo-metrics.outputs.commits-count }} -gt 10 ]; then
+            echo "- 🔥 **High Activity**: Significant development activity with ${{ steps.repo-metrics.outputs.commits-count }} commits" >> telemetry-report.md
+          elif [ ${{ steps.repo-metrics.outputs.commits-count }} -gt 5 ]; then
+            echo "- ✅ **Moderate Activity**: Steady development pace with ${{ steps.repo-metrics.outputs.commits-count }} commits" >> telemetry-report.md
+          else
+            echo "- 📊 **Low Activity**: Light development activity with ${{ steps.repo-metrics.outputs.commits-count }} commits" >> telemetry-report.md
+          fi
+          
+          if [ ${{ steps.repo-metrics.outputs.authors-count }} -gt 2 ]; then
+            echo "- 👥 **Collaborative**: Multiple contributors (${{ steps.repo-metrics.outputs.authors-count }}) actively participating" >> telemetry-report.md
+          else
+            echo "- 👤 **Individual**: Limited contributor base (${{ steps.repo-metrics.outputs.authors-count }} active)" >> telemetry-report.md
+          fi
+          
+          cat >> telemetry-report.md << EOF
+          
+          ## AI Workflow Performance
+          
+          ### AI Development Lane Metrics
+          | Metric | Value |
+          |--------|-------|
+          | AI-Generated PRs | ${{ steps.ai-metrics.outputs.ai-pr-count }} |
+          | AI Code Reviews | ${{ steps.ai-metrics.outputs.ai-review-count }} |
+          | Security Scans | ${{ steps.ai-metrics.outputs.ai-security-scan-count }} |
+          | Human Promotions | ${{ steps.ai-metrics.outputs.ai-promotion-count }} |
+          
+          ### AI Lane Analysis
+          EOF
+          
+          # AI workflow analysis
+          if [ ${{ steps.ai-metrics.outputs.ai-pr-count }} -gt 0 ]; then
+            promotion_rate=$((100 * ${{ steps.ai-metrics.outputs.ai-promotion-count }} / ${{ steps.ai-metrics.outputs.ai-pr-count }}))
+            echo "- 🤖 **AI Contribution**: ${{ steps.ai-metrics.outputs.ai-pr-count }} AI-generated PRs with ${promotion_rate}% promotion rate" >> telemetry-report.md
+            
+            if [ $promotion_rate -gt 80 ]; then
+              echo "- ⭐ **High Quality**: Excellent AI contribution quality (${promotion_rate}% promoted)" >> telemetry-report.md
+            elif [ $promotion_rate -gt 50 ]; then
+              echo "- ✅ **Good Quality**: Solid AI contribution quality (${promotion_rate}% promoted)" >> telemetry-report.md
+            else
+              echo "- 🔍 **Needs Review**: AI contribution quality may need attention (${promotion_rate}% promoted)" >> telemetry-report.md
+            fi
+          else
+            echo "- 💤 **No AI Activity**: No AI-generated contributions this period" >> telemetry-report.md
+          fi
+          
+          cat >> telemetry-report.md << EOF
+          
+          ## Quality Assurance
+          
+          ### Quality Metrics
+          | Metric | Value |
+          |--------|-------|
+          | Test Coverage | ${{ steps.quality-metrics.outputs.test-coverage }}% |
+          | Build Success Rate | ${{ steps.quality-metrics.outputs.build-success-rate }}% |
+          | Security Issues | ${{ steps.quality-metrics.outputs.security-issues }} |
+          
+          ### Quality Analysis
+          EOF
+          
+          # Quality analysis
+          if [ "${{ steps.quality-metrics.outputs.test-coverage }}" != "N/A" ]; then
+            coverage=${{ steps.quality-metrics.outputs.test-coverage }}
+            if [ "${coverage%.*}" -gt 80 ]; then
+              echo "- 🛡️ **Excellent Coverage**: Test coverage is strong at ${coverage}%" >> telemetry-report.md
+            elif [ "${coverage%.*}" -gt 60 ]; then
+              echo "- ✅ **Good Coverage**: Test coverage is adequate at ${coverage}%" >> telemetry-report.md
+            else
+              echo "- ⚠️ **Low Coverage**: Test coverage needs improvement at ${coverage}%" >> telemetry-report.md
+            fi
+          fi
+          
+          if [ "${{ steps.quality-metrics.outputs.build-success-rate }}" != "N/A" ]; then
+            success_rate="${{ steps.quality-metrics.outputs.build-success-rate }}"
+            if [ "${success_rate%.*}" -gt 95 ]; then
+              echo "- 🎯 **Excellent Reliability**: Build success rate is excellent at ${success_rate}%" >> telemetry-report.md
+            elif [ "${success_rate%.*}" -gt 90 ]; then
+              echo "- ✅ **Good Reliability**: Build success rate is good at ${success_rate}%" >> telemetry-report.md
+            else
+              echo "- 🔧 **Needs Attention**: Build reliability needs improvement at ${success_rate}%" >> telemetry-report.md
+            fi
+          fi
+          
+          cat >> telemetry-report.md << EOF
+          
+          ## Constitutional Compliance
+          
+          ### Governance Health
+          - 📋 **Constitution**: Project governance document is maintained
+          - 🔒 **Security Policy**: Risk policy is defined and enforced
+          - 🤝 **Dual-Lane Model**: Human and AI development lanes operating
+          - 🏛️ **Quality Gates**: Automated quality assurance active
+          
+          EOF
+          
+          # Detailed analysis section
+          if [ "${{ steps.params.outputs.detailed-analysis }}" = "true" ]; then
+            cat >> telemetry-report.md << EOF
+          ## Detailed Analysis
+          
+          ### Recent Commit Activity
+          EOF
+            
+            echo '```' >> telemetry-report.md
+            git log --since="${{ steps.params.outputs.start-date }}" --until="${{ steps.params.outputs.end-date }}" --oneline --graph | head -20 >> telemetry-report.md
+            echo '```' >> telemetry-report.md
+            
+            cat >> telemetry-report.md << EOF
+          
+          ### File Change Patterns
+          EOF
+            
+            echo '```' >> telemetry-report.md
+            git log --since="${{ steps.params.outputs.start-date }}" --until="${{ steps.params.outputs.end-date }}" --name-only --pretty=format: | sort | uniq -c | sort -nr | head -10 >> telemetry-report.md
+            echo '```' >> telemetry-report.md
+            
+            cat >> telemetry-report.md << EOF
+          
+          ### Contributor Activity
+          EOF
+            
+            echo '```' >> telemetry-report.md
+            git log --since="${{ steps.params.outputs.start-date }}" --until="${{ steps.params.outputs.end-date }}" --format="%an" | sort | uniq -c | sort -nr >> telemetry-report.md
+            echo '```' >> telemetry-report.md
+          fi
+          
+          cat >> telemetry-report.md << EOF
+          
+          ## Recommendations
+          
+          ### Immediate Actions
+          EOF
+          
+          # Generate recommendations based on metrics
+          if [ ${{ steps.repo-metrics.outputs.commits-count }} -lt 3 ]; then
+            echo "- 📈 **Increase Activity**: Consider more frequent commits and development activity" >> telemetry-report.md
+          fi
+          
+          if [ ${{ steps.ai-metrics.outputs.ai-pr-count }} -gt 0 ] && [ ${{ steps.ai-metrics.outputs.ai-promotion-count }} -eq 0 ]; then
+            echo "- 🔍 **Review AI Contributions**: AI PRs are being created but not promoted - review quality" >> telemetry-report.md
+          fi
+          
+          if [ "${{ steps.quality-metrics.outputs.build-success-rate }}" != "N/A" ]; then
+            success_rate="${{ steps.quality-metrics.outputs.build-success-rate }}"
+            if [ "${success_rate%.*}" -lt 90 ]; then
+              echo "- 🔧 **Improve Build Reliability**: Build success rate below 90% - investigate failures" >> telemetry-report.md
+            fi
+          fi
+          
+          cat >> telemetry-report.md << EOF
+          
+          ### Strategic Initiatives
+          - 📚 **Documentation**: Continue maintaining up-to-date documentation
+          - 🤖 **AI Integration**: Monitor and optimize AI workflow performance
+          - 🛡️ **Security**: Regular security reviews and updates
+          - 🧪 **Testing**: Maintain comprehensive test coverage
+          
+          ---
+          
+          *This report was automatically generated by the Dissonance Labs Starter telemetry system.*  
+          *Report ID: tel-$(date +%Y%m%d-%H%M%S)*  
+          *Next report: $(date -u -d "+7 days" +"%Y-%m-%d")*
+          EOF
+          
+          echo "Telemetry report generated successfully"
+
+      - name: Create telemetry issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read the generated report
+            const reportContent = fs.readFileSync('telemetry-report.md', 'utf8');
+            
+            // Get current date for title
+            const now = new Date();
+            const weekNumber = getWeekNumber(now);
+            const year = now.getFullYear();
+            
+            function getWeekNumber(date) {
+              const d = new Date(date.getTime());
+              d.setHours(0, 0, 0, 0);
+              d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+              const week1 = new Date(d.getFullYear(), 0, 4);
+              return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+            
+            // Create issue
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📊 Weekly Telemetry Report - Week ${weekNumber} ${year}`,
+              body: reportContent,
+              labels: ['telemetry', 'weekly-report', 'automation']
+            });
+            
+            console.log('Telemetry issue created successfully');
+
+      - name: Upload telemetry report
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-report
+          path: telemetry-report.md
+          retention-days: 90
+
+      - name: Run custom telemetry script
+        if: hashFiles('scripts/telemetry-report.ts') != ''
+        run: |
+          echo "Running custom telemetry analysis..."
+          if [ -f "scripts/telemetry-report.ts" ]; then
+            npx tsx scripts/telemetry-report.ts \
+              --start-date="${{ steps.params.outputs.start-date }}" \
+              --end-date="${{ steps.params.outputs.end-date }}" \
+              --output="custom-telemetry.json"
+          fi
+
+      - name: Upload custom telemetry
+        if: hashFiles('custom-telemetry.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-telemetry
+          path: custom-telemetry.json
+          retention-days: 90
