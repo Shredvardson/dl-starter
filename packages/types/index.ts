@@ -18,3 +18,6 @@ export const HealthCheckSchema = z.object({
 });
 
 export type HealthCheck = z.infer<typeof HealthCheckSchema>;
+
+// Analytics types
+export * from './src/analytics';
