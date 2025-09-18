@@ -1,939 +1,386 @@
 #!/usr/bin/env node
 
 /**
- * Enhanced Spec Scaffolding Script with Lane Detection
- * 
- * Creates new specification directories with proper structure,
- * detects development lanes, and links to GitHub issues.
- * 
- * Usage:
- *   npm run new-spec -- "Feature Name" [--issue=123] [--lane=human|ai]
- *   node scripts/new-spec.mjs "Feature Name" [--issue=123] [--lane=human|ai]
+ * Generate standardized Spec Kit artifacts with YYYYMMDD naming
+ * Creates specs/, plans/, tasks/ files and updates GitHub issue
  */
 
-import { promises as fs } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
+import fs from 'fs';
+import { execSync } from 'child_process';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, '..');
-
-// Configuration
-const SPECS_DIR = join(PROJECT_ROOT, 'specs');
-const CONSTITUTION_PATH = join(PROJECT_ROOT, 'docs', 'constitution.md');
-const RISK_POLICY_PATH = join(PROJECT_ROOT, 'docs', 'llm', 'risk-policy.json');
-
-// Lane detection patterns
-const LANE_PATTERNS = {
-  ai: [
-    /^bots\/claude\//,
-    /\[AI\]/i,
-    /automated/i,
-    /claude/i
-  ],
-  human: [
-    /^feature\//,
-    /^fix\//,
-    /^refactor\//,
-    /\[HUMAN\]/i
-  ]
-};
-
-/**
- * Parse command line arguments
- */
-function parseArgs() {
-  const args = process.argv.slice(2);
-  
-  if (args.length === 0) {
-    console.error('❌ Error: Spec name is required');
-    console.log('Usage: npm run new-spec -- "Feature Name" [--issue=123] [--lane=human|ai]');
-    process.exit(1);
-  }
-  
-  const specName = args[0];
-  const options = {};
-  
-  // Parse additional arguments
-  for (let i = 1; i < args.length; i++) {
-    const arg = args[i];
-    
-    if (arg.startsWith('--issue=')) {
-      options.issue = arg.split('=')[1];
-    } else if (arg.startsWith('--lane=')) {
-      const lane = arg.split('=')[1];
-      if (!['human', 'ai'].includes(lane)) {
-        console.error('❌ Error: Lane must be "human" or "ai"');
-        process.exit(1);
-      }
-      options.lane = lane;
-    } else if (arg === '--help' || arg === '-h') {
-      showHelp();
-      process.exit(0);
-    }
-  }
-  
-  return { specName, ...options };
+// Get command line arguments
+const args = process.argv.slice(2);
+if (args.length === 0) {
+  console.error('Usage: node scripts/new-spec.mjs <feature-slug> [issue-number] [--lane=spec|simple]');
+  console.error('Example: node scripts/new-spec.mjs user-authentication 123 --lane=spec');
+  console.error('Example: node scripts/new-spec.mjs button-fix --lane=simple');
+  process.exit(1);
 }
 
-/**
- * Show help information
- */
-function showHelp() {
-  console.log(`
-Enhanced Spec Scaffolding Script
+const slug = args[0];
 
-USAGE:
-  npm run new-spec -- "Feature Name" [OPTIONS]
-  node scripts/new-spec.mjs "Feature Name" [OPTIONS]
+// Parse issue number and lane arguments more carefully
+let issueNumber = null;
+let laneFlag = null;
 
-OPTIONS:
-  --issue=NUMBER     Link to GitHub issue number
-  --lane=LANE        Specify development lane (human|ai)
-  --help, -h         Show this help message
-
-EXAMPLES:
-  npm run new-spec -- "User Authentication"
-  npm run new-spec -- "API Rate Limiting" --issue=42
-  npm run new-spec -- "AI Code Review" --lane=ai --issue=123
-
-DEVELOPMENT LANES:
-  human    Human-driven development (default)
-  ai       AI-assisted development with human oversight
-
-The script will:
-1. Detect the current development lane automatically
-2. Create a properly numbered spec directory
-3. Generate README.md and DESIGN.md templates
-4. Link to GitHub issues if specified
-5. Apply constitutional compliance checks
-`);
+// Process remaining arguments
+for (let i = 1; i < args.length; i++) {
+  const arg = args[i];
+  if (arg.startsWith('--lane=')) {
+    laneFlag = arg.split('=')[1];
+  } else if (!issueNumber && /^\d+$/.test(arg)) {
+    issueNumber = arg;
+  }
 }
 
-/**
- * Detect current development lane
- */
-async function detectLane(forceLane = null) {
-  if (forceLane) {
-    console.log(`🎯 Using specified lane: ${forceLane}`);
-    return forceLane;
-  }
+// Enhanced issue number extraction
+function extractIssueNumber() {
+  if (issueNumber) return issueNumber;
   
+  // Try to extract from branch name (feature/spec-123-slug or feature/simple-123-slug)
   try {
-    // Check current git branch
-    const currentBranch = await execCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
-    console.log(`🌿 Current branch: ${currentBranch}`);
-    
-    // Check AI patterns
-    for (const pattern of LANE_PATTERNS.ai) {
-      if (pattern.test(currentBranch)) {
-        console.log(`🤖 AI lane detected from branch pattern: ${pattern}`);
-        return 'ai';
-      }
+    const branchName = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+    const branchMatch = branchName.match(/feature\/(?:spec|simple)-(\d+)-/);
+    if (branchMatch) {
+      return branchMatch[1];
     }
-    
-    // Check human patterns
-    for (const pattern of LANE_PATTERNS.human) {
-      if (pattern.test(currentBranch)) {
-        console.log(`👤 Human lane detected from branch pattern: ${pattern}`);
-        return 'human';
-      }
-    }
-    
-    // Check commit author for AI indicators
-    const lastCommitAuthor = await execCommand('git', ['log', '-1', '--format=%an']);
-    if (lastCommitAuthor.toLowerCase().includes('claude') || 
-        lastCommitAuthor.toLowerCase().includes('bot')) {
-      console.log(`🤖 AI lane detected from commit author: ${lastCommitAuthor}`);
-      return 'ai';
-    }
-    
-    // Default to human lane
-    console.log(`👤 Defaulting to human lane`);
-    return 'human';
-    
   } catch (error) {
-    console.warn('⚠️ Warning: Could not detect lane automatically, defaulting to human');
-    return 'human';
-  }
-}
-
-/**
- * Get next spec number
- */
-async function getNextSpecNumber() {
-  try {
-    await fs.access(SPECS_DIR);
-  } catch {
-    // Specs directory doesn't exist, start with 001
-    return 1;
+    // Not in git repo
   }
   
-  const entries = await fs.readdir(SPECS_DIR, { withFileTypes: true });
-  const specDirs = entries
-    .filter(entry => entry.isDirectory())
-    .map(entry => entry.name)
-    .filter(name => /^\d{3}-/.test(name))
-    .map(name => parseInt(name.slice(0, 3)))
-    .sort((a, b) => a - b);
-  
-  return specDirs.length > 0 ? Math.max(...specDirs) + 1 : 1;
-}
-
-/**
- * Sanitize spec name for directory
- */
-function sanitizeSpecName(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-/**
- * Validate GitHub issue
- */
-async function validateGitHubIssue(issueNumber) {
-  if (!issueNumber) return null;
-  
+  // Try to extract from last commit message
   try {
-    const result = await execCommand('gh', ['issue', 'view', issueNumber, '--json', 'title,state,url']);
-    const issue = JSON.parse(result);
-    
-    if (issue.state === 'CLOSED') {
-      console.warn(`⚠️ Warning: Issue #${issueNumber} is closed`);
+    const lastCommit = execSync('git log -1 --pretty=%B', { encoding: 'utf8' }).trim();
+    const commitMatch = lastCommit.match(/#(\d+)/);
+    if (commitMatch) {
+      return commitMatch[1];
     }
-    
-    console.log(`🔗 Linked to issue #${issueNumber}: ${issue.title}`);
-    return {
-      number: issueNumber,
-      title: issue.title,
-      url: issue.url,
-      state: issue.state
-    };
   } catch (error) {
-    console.warn(`⚠️ Warning: Could not validate GitHub issue #${issueNumber}: ${error.message}`);
-    return {
-      number: issueNumber,
-      title: 'Unknown',
-      url: `https://github.com/owner/repo/issues/${issueNumber}`,
-      state: 'UNKNOWN'
-    };
+    // Not in git repo or no commits
   }
-}
-
-/**
- * Load constitutional requirements
- */
-async function loadConstitutionalRequirements() {
-  try {
-    const constitution = await fs.readFile(CONSTITUTION_PATH, 'utf8');
-    const riskPolicy = JSON.parse(await fs.readFile(RISK_POLICY_PATH, 'utf8'));
-    
-    return {
-      hasConstitution: true,
-      hasRiskPolicy: true,
-      securityRequired: constitution.includes('Security First'),
-      testingRequired: constitution.includes('Test-Driven'),
-      laneIsolation: constitution.includes('Lane Coordination')
-    };
-  } catch (error) {
-    console.warn('⚠️ Warning: Could not load constitutional requirements');
-    return {
-      hasConstitution: false,
-      hasRiskPolicy: false,
-      securityRequired: true,
-      testingRequired: true,
-      laneIsolation: true
-    };
-  }
-}
-
-/**
- * Generate README template
- */
-function generateReadmeTemplate(specNumber, specName, lane, issue, constitutional) {
-  const formattedNumber = String(specNumber).padStart(3, '0');
-  const timestamp = new Date().toISOString().split('T')[0];
   
-  let template = `# Spec ${formattedNumber}: ${specName}
-
-**Status:** Draft  
-**Created:** ${timestamp}  
-**Development Lane:** ${lane.charAt(0).toUpperCase() + lane.slice(1)}  
-`;
-
-  if (issue) {
-    template += `**Related Issue:** [#${issue.number}](${issue.url}) - ${issue.title}  `;
+  // Could also check PR body in CI context via GITHUB_EVENT_PATH
+  if (process.env.GITHUB_EVENT_PATH) {
+    try {
+      const eventData = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+      if (eventData.pull_request?.body) {
+        const prMatch = eventData.pull_request.body.match(/#(\d+)/);
+        if (prMatch) {
+          return prMatch[1];
+        }
+      }
+    } catch (error) {
+      // Event file not found or invalid
+    }
   }
+  
+  return null;
+}
 
-  template += `
-**Author:** ${lane === 'ai' ? 'AI-Assisted (Claude)' : 'Human Developer'}  
+issueNumber = extractIssueNumber();
 
-## Overview
-
-${specName} specification defines the requirements, design, and implementation approach for this feature.
-
-## Requirements
-
-### Functional Requirements
-
-- [ ] Requirement 1
-- [ ] Requirement 2
-- [ ] Requirement 3
-
-### Non-Functional Requirements
-
-`;
-
-  if (constitutional.securityRequired) {
-    template += `
-#### Security Requirements
-- [ ] Input validation and sanitization
-- [ ] Authentication and authorization
-- [ ] Data protection and privacy compliance
-- [ ] Secure communication protocols
-`;
+// Determine workflow lane
+function inferLane() {
+  // Check explicit flag (parsed above)
+  if (laneFlag) {
+    return laneFlag;
   }
-
-  if (constitutional.testingRequired) {
-    template += `
-#### Testing Requirements
-- [ ] Unit test coverage ≥ 80%
-- [ ] Integration test coverage for critical paths
-- [ ] End-to-end test scenarios
-- [ ] Performance testing benchmarks
-`;
+  
+  // Check environment variable
+  if (process.env.LANE) {
+    return process.env.LANE;
   }
-
-  template += `
-#### Performance Requirements
-- [ ] Response time requirements
-- [ ] Throughput specifications
-- [ ] Scalability targets
-- [ ] Resource utilization limits
-
-#### Compliance Requirements
-- [ ] Constitutional adherence
-- [ ] Code quality standards
-- [ ] Documentation requirements
-- [ ] Accessibility standards
-
-## Implementation Approach
-
-### Development Strategy
-
-`;
-
-  if (lane === 'ai') {
-    template += `This specification is developed in the **AI Development Lane** with the following considerations:
-
-- **Human Oversight**: All AI contributions require human review and approval
-- **Quality Gates**: Enhanced automated testing and validation
-- **Branch Isolation**: Development restricted to \`bots/claude/*\` branches
-- **Promotion Process**: Requires explicit human promotion via labels
-
-`;
-  } else {
-    template += `This specification is developed in the **Human Development Lane** following standard practices:
-
-- **Peer Review**: Standard code review process
-- **Quality Gates**: Standard CI/CD pipeline validation
-- **Direct Integration**: Standard merge process to main branch
-
-`;
+  
+  // Infer from branch name (feature/spec-* vs feature/simple-*)
+  try {
+    const branchName = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+    if (branchName.startsWith('feature/spec-')) return 'spec';
+    if (branchName.startsWith('feature/simple-')) return 'simple';
+  } catch (error) {
+    // Not in a git repo or other error
   }
+  
+  // Default to spec for safety (explicit creation)
+  return 'spec';
+}
 
-  if (constitutional.laneIsolation) {
-    template += `### Lane Coordination
+const lane = inferLane();
 
-- **Cross-Lane Communication**: [Describe any coordination needed]
-- **Handoff Points**: [Define transition points between lanes]
-- **Quality Alignment**: Both lanes follow identical quality standards
+// Exit early for simple workflow - don't create spec artifacts
+if (lane === 'simple') {
+  console.log('🚀 Simple workflow detected - no spec artifacts needed');
+  console.log('💡 Use /dev:plan-feature command for lightweight planning');
+  console.log('📝 Focus on: small scope, existing files, minimal risk');
+  process.exit(0);
+}
+const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
 
-`;
+// Generate file paths
+const specPath = `specs/${timestamp}-${slug}.md`;
+const planPath = `plans/${timestamp}-${slug}.md`;
+const taskPath = `tasks/${timestamp}-${slug}.md`;
+
+console.log(`🏗️ Creating Spec Kit artifacts for ${lane} workflow...`);
+console.log(`📋 Spec: ${specPath}`);
+console.log(`🏛️ Plan: ${planPath}`);
+console.log(`✅ Tasks: ${taskPath}`);
+
+// Create directories if they don't exist
+['specs', 'plans', 'tasks'].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
+});
 
-  template += `### Technical Approach
+// Generate specification template
+const specTemplate = `# Feature Specification: ${slug.replace(/-/g, ' ')}
 
-1. **Analysis Phase**
-   - Requirements gathering
-   - Technical research
-   - Architecture design
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
+**Status:** Draft
 
-2. **Implementation Phase**
-   - Core functionality development
-   - Testing implementation
-   - Documentation creation
+## User Need
+[NEEDS_CLARIFICATION] What problem does this solve? Why is it important?
 
-3. **Validation Phase**
-   - Quality assurance
-   - Performance validation
-   - Security review
+## Functional Requirements  
+[NEEDS_CLARIFICATION] What should the feature do? (user perspective only)
 
-## Architecture
+## User Experience
+[NEEDS_CLARIFICATION] How should users interact with this feature?
 
-### High-Level Design
+## Success Criteria
+[NEEDS_CLARIFICATION] How will we know this feature works well?
+- [ ] 
+- [ ] 
+- [ ] 
 
-[Describe the overall architecture and design approach]
+## Out of Scope
+[NEEDS_CLARIFICATION] What are we explicitly not building?
 
-### Component Breakdown
+## Clarifications Needed
+- [NEEDS_CLARIFICATION] 
+- [NEEDS_CLARIFICATION] 
 
-[List and describe major components]
+## Links
+- **Technical Plan:** [${planPath}](../${planPath})
+- **Task Breakdown:** [${taskPath}](../${taskPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
 
-### Data Flow
+---
+*Generated by \`scripts/new-spec.mjs\` - Use \`/plan\` command to create technical implementation*`;
 
-[Describe how data flows through the system]
+// Generate plan template  
+const planTemplate = `# Technical Plan: ${slug.replace(/-/g, ' ')}
 
-### Integration Points
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Specification:** [${specPath}](../${specPath})
+**Status:** Draft
 
-[Describe how this feature integrates with existing systems]
+## Architecture Decision  
+How does this fit within our Next.js/TypeScript/Tailwind stack?
+
+## File Changes Required
+- Files to modify: 
+- New files needed: 
+- Database changes: 
+
+## Implementation Strategy
+- Component structure and patterns
+- State management approach  
+- API design (if needed)
+- Integration points with existing code
 
 ## Testing Strategy
-
-### Test Pyramid
-
-- **Unit Tests**: Component-level validation
-- **Integration Tests**: Inter-component communication
-- **E2E Tests**: Complete user workflows
-- **Performance Tests**: Load and stress testing
-
-### Test Scenarios
-
-[Describe key test scenarios and acceptance criteria]
+Following TDD order from constitution:
+1. **Contract tests:** Define interfaces
+2. **Integration tests:** Component interactions  
+3. **E2E tests:** User workflows
+4. **Unit tests:** Business logic
 
 ## Security Considerations
+- Input validation requirements
+- Authentication/authorization needs
+- Data protection patterns
+- Rate limiting considerations
 
-`;
+## Dependencies
+- Existing packages to leverage
+- New packages needed (with justification)
+- Version compatibility checks
 
-  if (constitutional.securityRequired) {
-    template += `### Threat Model
+## Risks & Mitigation
+- Technical risks and solutions
+- Breaking change potential
+- Performance implications
 
-- **Attack Vectors**: [Identify potential security threats]
-- **Mitigation Strategies**: [Describe security controls]
-- **Validation Requirements**: [Define security testing needs]
-
-### Privacy Impact
-
-- **Data Collection**: [Describe what data is collected]
-- **Data Processing**: [Describe how data is processed]
-- **Data Storage**: [Describe data retention and deletion]
-- **User Rights**: [Describe user privacy controls]
-
-`;
-  } else {
-    template += `[Security analysis will be added during implementation]
-
-`;
-  }
-
-  template += `## Performance Considerations
-
-### Scalability
-
-[Describe scalability requirements and approach]
-
-### Optimization
-
-[Describe performance optimization strategies]
-
-### Monitoring
-
-[Describe monitoring and observability requirements]
-
-## Documentation Plan
-
-- [ ] API documentation
-- [ ] User guides
-- [ ] Developer documentation
-- [ ] Deployment guides
-
-## Acceptance Criteria
-
-### Definition of Done
-
-- [ ] All functional requirements implemented
-- [ ] All non-functional requirements met
-- [ ] Test coverage targets achieved
-- [ ] Security review completed
-- [ ] Documentation completed
-- [ ] Performance benchmarks met
-
-### Success Metrics
-
-[Define measurable success criteria]
-
-## Risk Assessment
-
-### Technical Risks
-
-- [ ] Risk 1: [Description and mitigation]
-- [ ] Risk 2: [Description and mitigation]
-
-### Process Risks
-
-- [ ] Risk 1: [Description and mitigation]
-- [ ] Risk 2: [Description and mitigation]
-
-`;
-
-  if (lane === 'ai') {
-    template += `### AI Development Risks
-
-- [ ] **Quality Assurance**: Enhanced validation required for AI contributions
-- [ ] **Human Oversight**: Dependency on human review and approval
-- [ ] **Integration Complexity**: Coordination between AI and human development lanes
-
-`;
-  }
-
-  template += `## Timeline
-
-### Milestones
-
-- [ ] **Specification Complete**: [Date]
-- [ ] **Implementation Start**: [Date]
-- [ ] **Alpha Release**: [Date]
-- [ ] **Beta Release**: [Date]
-- [ ] **Production Release**: [Date]
-
-### Dependencies
-
-[List any dependencies on other features or external systems]
-
-## References
-
-- [Constitutional Requirements](../../docs/constitution.md)
-`;
-
-  if (constitutional.hasRiskPolicy) {
-    template += `- [Risk Policy](../../docs/llm/risk-policy.json)
-`;
-  }
-
-  if (issue) {
-    template += `- [Related Issue #${issue.number}](${issue.url})
-`;
-  }
-
-  template += `- [Development Workflows](../../CLAUDE.md)
-- [Contributing Guidelines](../../CONTRIBUTING.md)
+## Links
+- **Specification:** [${specPath}](../${specPath})
+- **Task Breakdown:** [${taskPath}](../${taskPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
 
 ---
+*Generated by \`scripts/new-spec.mjs\` - Use \`/tasks\` command to create implementation breakdown*`;
 
-*This specification follows the Dissonance Labs Starter constitutional framework and development lane protocols.*
-`;
+// Generate tasks template
+const taskTemplate = `# Implementation Tasks: ${slug.replace(/-/g, ' ')}
 
-  return template;
-}
+**Created:** ${new Date().toISOString().slice(0, 10)}
+**Plan:** [${planPath}](../${planPath})
+**Status:** Ready for Implementation
 
-/**
- * Generate DESIGN template
- */
-function generateDesignTemplate(specNumber, specName, lane, constitutional) {
-  const formattedNumber = String(specNumber).padStart(3, '0');
+## Task Breakdown
+
+### Phase 1: Contracts & Interfaces
+- [ ] **Task 1.1:** Define TypeScript interfaces
+  - Files: \`src/types/${slug}.ts\`
+  - Acceptance: Type contracts for all data structures
   
-  let template = `# Design Document: ${specName}
-
-**Spec:** ${formattedNumber}  
-**Development Lane:** ${lane.charAt(0).toUpperCase() + lane.slice(1)}  
-**Document Type:** Technical Design  
-
-## Architecture Overview
-
-### System Context
-
-[Describe where this feature fits in the overall system architecture]
-
-### Design Principles
-
-`;
-
-  if (constitutional.securityRequired) {
-    template += `- **Security by Design**: All components implement security controls from the ground up
-`;
-  }
-
-  if (constitutional.testingRequired) {
-    template += `- **Testability**: All components are designed for comprehensive testing
-`;
-  }
-
-  template += `- **Modularity**: Components are loosely coupled and highly cohesive
-- **Scalability**: Design supports horizontal and vertical scaling
-- **Maintainability**: Code is readable, documented, and follows conventions
-
-## Technical Specifications
-
-### Technology Stack
-
-#### Frontend
-- **Framework**: [Specify framework]
-- **State Management**: [Specify approach]
-- **Styling**: [Specify solution]
-- **Testing**: [Specify testing tools]
-
-#### Backend
-- **Runtime**: [Specify runtime]
-- **Framework**: [Specify framework]
-- **Database**: [Specify database solution]
-- **API**: [Specify API design]
-
-#### DevOps
-- **CI/CD**: [Specify pipeline approach]
-- **Deployment**: [Specify deployment strategy]
-- **Monitoring**: [Specify monitoring solution]
-- **Logging**: [Specify logging approach]
-
-### Data Model
-
-#### Entities
-
-[Define data entities and their relationships]
-
-#### Schema
-
-\`\`\`sql
--- Database schema definitions
--- Add actual schema here
-\`\`\`
-
-#### Data Flow
-
-[Describe how data moves through the system]
-
-### API Design
-
-#### Endpoints
-
-\`\`\`typescript
-// API interface definitions
-interface ${specName.replace(/[^a-zA-Z0-9]/g, '')}API {
-  // Add interface definitions here
-}
-\`\`\`
-
-#### Authentication
-
-[Describe authentication and authorization approach]
-
-#### Error Handling
-
-[Describe error handling strategy]
-
-### Component Design
-
-#### Core Components
-
-[List and describe major components]
-
-#### Component Interactions
-
-[Describe how components interact with each other]
-
-#### State Management
-
-[Describe state management approach]
-
-### Security Design
-
-`;
-
-  if (constitutional.securityRequired) {
-    template += `#### Threat Modeling
-
-[Analyze potential security threats and countermeasures]
-
-#### Security Controls
-
-- **Input Validation**: [Describe validation approach]
-- **Authentication**: [Describe auth mechanism]
-- **Authorization**: [Describe access control]
-- **Data Protection**: [Describe encryption approach]
-- **Audit Logging**: [Describe audit requirements]
-
-#### Security Testing
-
-[Describe security testing approach]
-
-`;
-  } else {
-    template += `[Security design will be developed during implementation]
-
-`;
-  }
-
-  template += `### Performance Design
-
-#### Performance Requirements
-
-[Specify performance targets]
-
-#### Optimization Strategies
-
-[Describe performance optimization approaches]
-
-#### Caching Strategy
-
-[Describe caching approach]
-
-#### Database Optimization
-
-[Describe database performance considerations]
-
-### Testing Design
-
-`;
-
-  if (constitutional.testingRequired) {
-    template += `#### Test Strategy
-
-- **Unit Testing**: [Describe unit test approach]
-- **Integration Testing**: [Describe integration test strategy]
-- **E2E Testing**: [Describe end-to-end test scenarios]
-- **Performance Testing**: [Describe performance test plan]
-
-#### Test Data Management
-
-[Describe test data strategy]
-
-#### Continuous Testing
-
-[Describe CI/CD testing integration]
-
-`;
-  } else {
-    template += `[Testing design will be developed during implementation]
-
-`;
-  }
-
-  template += `## Implementation Plan
-
-### Phase 1: Foundation
-- [ ] Set up basic project structure
-- [ ] Implement core data models
-- [ ] Set up testing framework
-- [ ] Implement basic security controls
-
-### Phase 2: Core Features
-- [ ] Implement main functionality
-- [ ] Add comprehensive testing
-- [ ] Implement API endpoints
-- [ ] Add error handling
-
-### Phase 3: Enhancement
-- [ ] Performance optimization
-- [ ] Advanced features
-- [ ] Enhanced security
-- [ ] Documentation completion
-
-### Phase 4: Deployment
-- [ ] Production deployment
-- [ ] Monitoring setup
-- [ ] Performance validation
-- [ ] Security audit
-
-`;
-
-  if (lane === 'ai') {
-    template += `## AI Development Considerations
-
-### AI-Assisted Implementation
-
-- **Code Generation**: AI assistance for boilerplate and standard patterns
-- **Test Generation**: AI-generated test cases with human validation
-- **Documentation**: AI-assisted documentation with human review
-- **Code Review**: AI-powered code analysis with human oversight
-
-### Quality Assurance
-
-- **Enhanced Validation**: Additional automated checks for AI-generated code
-- **Human Checkpoints**: Required human review at key milestones
-- **Regression Testing**: Comprehensive testing to prevent AI-introduced bugs
-- **Performance Monitoring**: Careful monitoring of AI-generated code performance
-
-### Lane Coordination
-
-- **Handoff Points**: Clear definition of when work moves between lanes
-- **Communication**: Structured communication between AI and human developers
-- **Quality Standards**: Identical quality standards regardless of development lane
-
-`;
-  }
-
-  template += `## Deployment Strategy
-
-### Environment Setup
-
-[Describe environment configuration requirements]
-
-### Deployment Process
-
-[Describe deployment steps and automation]
-
-### Rollback Plan
-
-[Describe rollback procedures]
-
-### Monitoring and Alerting
-
-[Describe post-deployment monitoring]
-
-## Maintenance and Operations
-
-### Operational Requirements
-
-[Describe ongoing operational needs]
-
-### Maintenance Procedures
-
-[Describe maintenance activities]
-
-### Upgrade Strategy
-
-[Describe upgrade and migration approach]
-
-## Appendices
-
-### A. Decision Log
-
-[Record key technical decisions and rationale]
-
-### B. Performance Benchmarks
-
-[Include performance test results and targets]
-
-### C. Security Analysis
-
-[Include detailed security analysis results]
+- [ ] **Task 1.2:** Create API contracts (if needed)
+  - Files: \`src/api/[endpoints].ts\`
+  - Acceptance: Request/response types defined
+
+### Phase 2: Test Foundation  
+- [ ] **Task 2.1:** Integration test setup
+  - Files: \`tests/integration/${slug}.test.ts\`
+  - Acceptance: Test infrastructure and happy path
+
+- [ ] **Task 2.2:** E2E test scenarios
+  - Files: \`tests/e2e/${slug}.spec.ts\`  
+  - Acceptance: User workflow testing
+
+- [ ] **Task 2.3:** Unit test scaffolds
+  - Files: \`tests/unit/[components].test.ts\`
+  - Acceptance: Test files created, ready for TDD
+
+### Phase 3: Implementation
+- [ ] **Task 3.1:** Core components  
+  - Files: \`src/components/${slug}/\`
+  - Acceptance: Components pass integration tests
+
+- [ ] **Task 3.2:** Business logic
+  - Files: \`src/lib/${slug}/\`
+  - Acceptance: Logic passes unit tests
+
+- [ ] **Task 3.3:** API integration (if needed)
+  - Files: \`src/api/\`, \`src/hooks/\`
+  - Acceptance: Data flow works end-to-end
+
+### Phase 4: Integration & Polish
+- [ ] **Task 4.1:** UI integration
+  - Files: Page and layout updates
+  - Acceptance: Feature accessible in UI
+
+- [ ] **Task 4.2:** Error handling & validation
+  - Files: Error boundaries, form validation
+  - Acceptance: Graceful error states
+
+### Phase 5: Documentation & Release
+- [ ] **Task 5.1:** Update documentation
+  - Files: \`docs/\`, wiki pages, \`context-map.json\`
+  - Acceptance: Documentation current
+
+- [ ] **Task 5.2:** Security review
+  - Command: \`/dev:refactor-secure\`
+  - Acceptance: Security patterns validated
+
+## Implementation Commands
+1. Use \`/test:scaffold\` for each test file
+2. Use \`/dev:implement\` for each implementation task  
+3. Use \`/quality:run-linter\` after each phase
+4. Use \`/git:commit\` with conventional commit messages
+
+## Branch Strategy
+- Branch name: \`feature/${timestamp}-${slug}\`
+- Commit per task completion
+- PR when all tasks complete
+
+## Links
+- **Specification:** [${specPath}](../${specPath})
+- **Technical Plan:** [${planPath}](../${planPath})
+- **GitHub Issue:** ${issueNumber ? `#${issueNumber}` : 'TBD'}
 
 ---
+*Generated by \`scripts/new-spec.mjs\` - Ready for implementation using existing commands*`;
 
-*This design document is part of the Dissonance Labs Starter specification framework and follows constitutional design principles.*
-`;
+// Write all files
+fs.writeFileSync(specPath, specTemplate);
+fs.writeFileSync(planPath, planTemplate);
+fs.writeFileSync(taskPath, taskTemplate);
 
-  return template;
-}
+console.log('✅ All artifacts created successfully');
 
-/**
- * Execute command and return output
- */
-function execCommand(command, args) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: PROJECT_ROOT });
-    let stdout = '';
-    let stderr = '';
-    
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve(stdout.trim());
-      } else {
-        reject(new Error(stderr.trim() || `Command failed with code ${code}`));
-      }
-    });
-  });
-}
-
-/**
- * Main function
- */
-async function main() {
+// Update GitHub issue if provided
+if (issueNumber) {
   try {
-    console.log('🚀 Enhanced Spec Scaffolding Script Starting...\n');
+    console.log(`🔗 Updating GitHub issue #${issueNumber}...`);
     
-    // Parse arguments
-    const { specName, issue, lane: forceLane } = parseArgs();
-    console.log(`📝 Creating spec: "${specName}"`);
+    // Check if issue exists first
+    const checkCommand = `gh issue view ${issueNumber} --json number`;
+    execSync(checkCommand, { stdio: 'pipe' });
     
-    // Detect development lane
-    const lane = await detectLane(forceLane);
+    const repoUrl = process.env.GITHUB_REPOSITORY 
+      ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
+      : 'https://github.com/dissonance-labs/dl-starter-new';
     
-    // Validate GitHub issue if provided
-    const issueData = await validateGitHubIssue(issue);
-    
-    // Load constitutional requirements
-    const constitutional = await loadConstitutionalRequirements();
-    console.log(`📋 Constitutional requirements loaded: ${constitutional.hasConstitution ? '✅' : '⚠️'}`);
-    
-    // Get next spec number
-    const specNumber = await getNextSpecNumber();
-    const formattedNumber = String(specNumber).padStart(3, '0');
-    console.log(`🔢 Next spec number: ${formattedNumber}`);
-    
-    // Create spec directory
-    const sanitizedName = sanitizeSpecName(specName);
-    const specDirName = `${formattedNumber}-${sanitizedName}`;
-    const specDirPath = join(SPECS_DIR, specDirName);
-    
-    console.log(`📁 Creating directory: ${specDirName}`);
-    await fs.mkdir(specDirPath, { recursive: true });
-    
-    // Generate templates
-    console.log('📄 Generating README.md...');
-    const readmeContent = generateReadmeTemplate(specNumber, specName, lane, issueData, constitutional);
-    await fs.writeFile(join(specDirPath, 'README.md'), readmeContent);
-    
-    console.log('📄 Generating DESIGN.md...');
-    const designContent = generateDesignTemplate(specNumber, specName, lane, constitutional);
-    await fs.writeFile(join(specDirPath, 'DESIGN.md'), designContent);
-    
-    // Create additional directories
-    console.log('📁 Creating additional structure...');
-    await fs.mkdir(join(specDirPath, 'assets'), { recursive: true });
-    await fs.mkdir(join(specDirPath, 'examples'), { recursive: true });
-    
-    // Create placeholder files
-    await fs.writeFile(join(specDirPath, 'assets', '.gitkeep'), '# Assets directory for spec-related files\n');
-    await fs.writeFile(join(specDirPath, 'examples', '.gitkeep'), '# Examples directory for code samples\n');
-    
-    // Create summary report
-    console.log('\n✅ Spec scaffolding completed successfully!\n');
-    
-    console.log('📊 Summary:');
-    console.log(`   Spec Number: ${formattedNumber}`);
-    console.log(`   Spec Name: ${specName}`);
-    console.log(`   Directory: specs/${specDirName}`);
-    console.log(`   Development Lane: ${lane}`);
-    console.log(`   Constitutional Compliance: ${constitutional.hasConstitution ? '✅' : '⚠️'}`);
-    
-    if (issueData) {
-      console.log(`   Linked Issue: #${issueData.number} (${issueData.state})`);
-    }
-    
-    console.log('\n📝 Next Steps:');
-    console.log('   1. Edit README.md to complete the specification');
-    console.log('   2. Update DESIGN.md with technical details');
-    console.log('   3. Add any assets or examples as needed');
-    console.log('   4. Follow the constitutional development process');
-    
-    if (lane === 'ai') {
-      console.log('\n🤖 AI Lane Reminders:');
-      console.log('   - All changes require human review and approval');
-      console.log('   - Use bots/claude/* branches for development');
-      console.log('   - Request promotion labels for merge approval');
-      console.log('   - Follow enhanced quality gates');
-    }
-    
-    console.log(`\n🔗 View the spec: specs/${specDirName}/README.md`);
+    const updateCommand = `gh issue comment ${issueNumber} --body "📋 **Spec Kit Artifacts Created**
+
+**Generated:** ${new Date().toISOString().slice(0, 10)}
+**Workflow:** ${lane}
+
+🔗 **Artifacts:**
+- **Specification:** [\`${specPath}\`](${repoUrl}/blob/main/${specPath})
+- **Technical Plan:** [\`${planPath}\`](${repoUrl}/blob/main/${planPath})  
+- **Task Breakdown:** [\`${taskPath}\`](${repoUrl}/blob/main/${taskPath})
+
+📝 **Next Steps:**
+1. Fill out specification details (focus on WHAT and WHY)
+2. Use \`/plan\` command to complete technical implementation
+3. Use \`/tasks\` command to finalize implementation breakdown
+4. Create feature branch: \`feature/${timestamp}-${slug}\`
+
+*Artifacts follow YYYYMMDD naming convention for easy discovery and cross-referencing.*"`;
+
+    execSync(updateCommand, { stdio: 'inherit' });
+    console.log('✅ GitHub issue updated with artifact links');
     
   } catch (error) {
-    console.error(`❌ Error: ${error.message}`);
-    process.exit(1);
+    console.warn('⚠️ Could not update GitHub issue:', error.message);
+    if (error.message.includes('Could not resolve')) {
+      console.log(`💡 Issue #${issueNumber} not found. Create it first with:`);
+      console.log(`   gh issue create --title "${slug.replace(/-/g, ' ')}" --body "Feature request"`);
+    } else {
+      console.log('💡 Run manually: gh issue comment', issueNumber, '--body="Spec Kit artifacts created"');
+    }
   }
+} else {
+  console.log('ℹ️ No issue number provided or detected');
+  console.log('💡 To link artifacts to an issue:');
+  console.log('   1. Create issue: gh issue create --title "Feature" --body "Description"');
+  console.log('   2. Re-run with issue number: node scripts/new-spec.mjs', slug, '<issue-number>');
+  console.log('   3. Or use branch naming: feature/spec-123-' + slug);
 }
 
-// Run the script
-main();
+console.log(`
+🎉 Spec Kit scaffold complete!
+
+📁 Files created:
+  ${specPath}
+  ${planPath}  
+  ${taskPath}
+
+📋 Next steps:
+1. Edit ${specPath} to define requirements
+2. Use /plan command to complete technical details
+3. Use /tasks command to finalize implementation
+4. Create feature branch: git checkout -b feature/${timestamp}-${slug}
+
+🔍 All files use YYYYMMDD naming for easy discovery and searching.
+`);
+
+// Add to git if in a git repository
+try {
+  execSync('git add ' + [specPath, planPath, taskPath].join(' '), { stdio: 'pipe' });
+  console.log('✅ Files added to git staging');
+} catch (error) {
+  console.log('ℹ️ Files created but not added to git (not in git repository)');
+}

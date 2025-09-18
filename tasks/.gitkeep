@@ -1,0 +1,2 @@
+# This file keeps the tasks/ folder in git when empty
+# Tasks are created on-demand via the /tasks command

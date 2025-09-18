@@ -1,0 +1,2 @@
+# This file keeps the plans/ folder in git when empty  
+# Plans are created on-demand via the /plan command
