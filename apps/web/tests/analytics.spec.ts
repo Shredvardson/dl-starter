@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import '../src/types/test-env';
 
 test.describe('Analytics Dashboard', () => {
   test.beforeEach(async ({ page }) => {
@@ -22,7 +23,7 @@ test.describe('Analytics Dashboard', () => {
   test('should display analytics metrics with feature flag enabled', async ({ page }) => {
     // Set feature flag environment variable simulation
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = true;
+      window.__ENV_ANALYTICS_ENABLED__ = true;
     });
 
     await page.goto('/dashboard/analytics');
@@ -40,7 +41,7 @@ test.describe('Analytics Dashboard', () => {
   test('should display disabled message when feature flag is off', async ({ page }) => {
     // Disable analytics
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = false;
+      window.__ENV_ANALYTICS_ENABLED__ = false;
     });
 
     await page.goto('/dashboard/analytics');
@@ -52,7 +53,7 @@ test.describe('Analytics Dashboard', () => {
 
   test('should render charts for analytics data', async ({ page }) => {
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = true;
+      window.__ENV_ANALYTICS_ENABLED__ = true;
       // Mock some analytics data
       const mockData = {
         events: [
@@ -81,7 +82,7 @@ test.describe('Analytics Dashboard', () => {
 
   test('should handle empty analytics data gracefully', async ({ page }) => {
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = true;
+      window.__ENV_ANALYTICS_ENABLED__ = true;
       localStorage.removeItem('dl-analytics');
     });
 
@@ -101,7 +102,7 @@ test.describe('Analytics Tracking', () => {
   test.beforeEach(async ({ page }) => {
     // Enable analytics and clear existing data
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = true;
+      window.__ENV_ANALYTICS_ENABLED__ = true;
       localStorage.removeItem('dl-analytics');
     });
   });
@@ -121,7 +122,7 @@ test.describe('Analytics Tracking', () => {
     expect(analyticsData).toBeTruthy();
     expect(analyticsData.events).toHaveLength(4); // 3 page views + 1 session start
     
-    const pageViewEvents = analyticsData.events.filter((e: any) => e.type === 'page_view');
+    const pageViewEvents = analyticsData.events.filter((e: { type: string; path: string }) => e.type === 'page_view');
     expect(pageViewEvents).toHaveLength(3);
     expect(pageViewEvents[0].path).toBe('/dashboard');
     expect(pageViewEvents[1].path).toBe('/dashboard/analytics');
@@ -140,7 +141,7 @@ test.describe('Analytics Tracking', () => {
       return data ? JSON.parse(data) : null;
     });
 
-    const clickEvents = analyticsData.events.filter((e: any) => e.type === 'click');
+    const clickEvents = analyticsData.events.filter((e: { type: string; metadata: { component: string } }) => e.type === 'click');
     expect(clickEvents.length).toBeGreaterThan(0);
     expect(clickEvents[0].metadata.component).toBe('header-help');
   });
@@ -148,7 +149,7 @@ test.describe('Analytics Tracking', () => {
   test('should not track events when analytics is disabled', async ({ page }) => {
     // Disable analytics
     await page.addInitScript(() => {
-      (window as any).__ENV_ANALYTICS_ENABLED__ = false;
+      window.__ENV_ANALYTICS_ENABLED__ = false;
     });
 
     await page.goto('/dashboard');

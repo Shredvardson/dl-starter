@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { trackPageView, startSession, endSession } from '@/lib/analytics';
 import { env } from '@/lib/env';
+import '@/types/test-env';
 
 interface AnalyticsContextType {
   trackClick: (component: string) => void;
@@ -26,7 +27,11 @@ interface AnalyticsProviderProps {
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   const pathname = usePathname();
   const sessionStarted = useRef(false);
-  const enabled = env.NEXT_PUBLIC_ENABLE_ANALYTICS;
+  
+  // Allow test environment to override via window object
+  const enabled = typeof window !== 'undefined' && window.__ENV_ANALYTICS_ENABLED__ !== undefined
+    ? window.__ENV_ANALYTICS_ENABLED__
+    : env.NEXT_PUBLIC_ENABLE_ANALYTICS;
 
   // Start session on mount
   useEffect(() => {

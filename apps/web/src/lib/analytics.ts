@@ -1,5 +1,6 @@
 import { AnalyticsEvent, AnalyticsData, AnalyticsMetrics } from '@shared/types';
 import { env } from './env';
+import { monitoring } from '@/lib/adapters/sentry';
 
 const STORAGE_KEY = 'dl-analytics';
 const MAX_EVENTS = 1000; // Prevent storage bloat
@@ -87,6 +88,9 @@ export function trackEvent(
   
   data.events.push(event);
   saveAnalyticsData(data);
+
+  // Send to telemetry for monitoring
+  sendToTelemetry(event);
 }
 
 /**
@@ -191,6 +195,67 @@ export function clearAnalyticsData(): void {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
     console.warn('Failed to clear analytics data:', error);
+  }
+}
+
+/**
+ * Send analytics event to telemetry system
+ */
+function sendToTelemetry(event: AnalyticsEvent): void {
+  try {
+    // Add breadcrumb for navigation events
+    if (event.type === 'page_view') {
+      monitoring.addBreadcrumb(
+        `Page view: ${event.path}`,
+        'navigation',
+        'info'
+      );
+    }
+
+    // Track significant user interactions
+    if (event.type === 'click' && event.metadata?.component) {
+      monitoring.addBreadcrumb(
+        `User clicked: ${event.metadata.component} on ${event.path}`,
+        'user',
+        'info'
+      );
+    }
+
+    // Send session events as messages
+    if (event.type === 'session_start') {
+      monitoring.captureMessage('User session started', {
+        level: 'info',
+        tags: { feature: 'analytics', event_type: 'session_start' },
+        extra: { path: event.path, sessionId: event.metadata?.sessionId }
+      });
+    }
+  } catch (error) {
+    console.warn('Failed to send analytics to telemetry:', error);
+  }
+}
+
+/**
+ * Send analytics metrics summary to telemetry (called periodically)
+ */
+export function reportMetricsToTelemetry(metrics: AnalyticsMetrics): void {
+  try {
+    monitoring.captureMessage('Analytics metrics report', {
+      level: 'info',
+      tags: {
+        feature: 'analytics',
+        event_type: 'metrics_report'
+      },
+      extra: {
+        totalPageViews: metrics.totalPageViews,
+        uniquePages: metrics.uniquePages,
+        totalClicks: metrics.totalClicks,
+        averageSessionDuration: metrics.averageSessionDuration,
+        topPages: metrics.topPages.slice(0, 5), // Top 5 pages
+        topComponents: metrics.clicksByComponent.slice(0, 5) // Top 5 components
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to report metrics to telemetry:', error);
   }
 }
 

@@ -2,20 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { AnalyticsMetrics, ChartData } from '@shared/types';
-import { getAnalyticsData, calculateMetrics } from '@/lib/analytics';
+import { getAnalyticsData, calculateMetrics, reportMetricsToTelemetry } from '@/lib/analytics';
 import { AnalyticsChart } from '@/components/AnalyticsChart';
 import { env } from '@/lib/env';
+import '@/types/test-env';
 
 export default function AnalyticsPage() {
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const enabled = env.NEXT_PUBLIC_ENABLE_ANALYTICS;
+  
+  // Allow test environment to override via window object
+  const enabled = typeof window !== 'undefined' && window.__ENV_ANALYTICS_ENABLED__ !== undefined
+    ? window.__ENV_ANALYTICS_ENABLED__
+    : env.NEXT_PUBLIC_ENABLE_ANALYTICS;
 
   useEffect(() => {
     if (enabled) {
-      const data = getAnalyticsData();
+      // Allow test environment to override analytics data
+      const mockData = typeof window !== 'undefined' ? window.__MOCK_ANALYTICS_DATA__ : null;
+      const data = mockData || getAnalyticsData();
       const calculatedMetrics = calculateMetrics(data);
       setMetrics(calculatedMetrics);
+
+      // Report metrics to telemetry when analytics dashboard is viewed
+      // Only if we have meaningful data (more than just the current page view)
+      if (calculatedMetrics.totalPageViews > 1 || calculatedMetrics.totalClicks > 0) {
+        reportMetricsToTelemetry(calculatedMetrics);
+      }
     }
     setLoading(false);
   }, [enabled]);
