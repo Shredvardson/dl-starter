@@ -1,0 +1,267 @@
+name: Routing Contract Validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/ci/**'
+      - 'docs/constitution.md'
+      - 'docs/llm/risk-policy.json'
+      - '.claude/commands/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/ci/**'
+      - 'docs/constitution.md'
+      - 'docs/llm/risk-policy.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-routing-contract:
+    name: Validate Routing Contract
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install -g ajv-cli yaml-validator
+
+      - name: Validate Constitution Schema
+        run: |
+          echo "Validating constitution.md structure..."
+          if [ ! -f "docs/constitution.md" ]; then
+            echo "❌ Constitution file missing"
+            exit 1
+          fi
+          
+          # Check required sections
+          required_sections=(
+            "# Dissonance Labs Starter Constitution"
+            "## Preamble"
+            "## Article I: Architectural Principles"
+            "## Article II: Development Lanes"
+            "## Article III: Quality Assurance"
+            "## Article VII: Amendment Process"
+            "## Article VIII: Enforcement"
+          )
+          
+          for section in "${required_sections[@]}"; do
+            if ! grep -q "^${section}" docs/constitution.md; then
+              echo "❌ Missing required section: ${section}"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Constitution structure validated"
+
+      - name: Validate Risk Policy JSON
+        run: |
+          echo "Validating risk-policy.json..."
+          if [ ! -f "docs/llm/risk-policy.json" ]; then
+            echo "❌ Risk policy file missing"
+            exit 1
+          fi
+          
+          # Validate JSON syntax
+          if ! jq empty docs/llm/risk-policy.json; then
+            echo "❌ Invalid JSON syntax in risk-policy.json"
+            exit 1
+          fi
+          
+          # Check required top-level keys
+          required_keys=("riskFramework" "pathRiskAssessment" "operationalPolicies" "securityPolicies" "monitoringAndTelemetry")
+          
+          for key in "${required_keys[@]}"; do
+            if ! jq -e ".${key}" docs/llm/risk-policy.json > /dev/null; then
+              echo "❌ Missing required key: ${key}"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Risk policy JSON validated"
+
+      - name: Validate Workflow Contracts
+        run: |
+          echo "Validating GitHub workflow contracts..."
+          
+          # Check that all AI workflows have proper feature flags
+          ai_workflows=(".github/workflows/claude-review.yml" ".github/workflows/security-review.yml")
+          
+          for workflow in "${ai_workflows[@]}"; do
+            if [ -f "$workflow" ]; then
+              if ! grep -q "CLAUDE_" "$workflow"; then
+                echo "❌ AI workflow $workflow missing feature flag validation"
+                exit 1
+              fi
+            fi
+          done
+          
+          # Validate workflow YAML syntax
+          for workflow in .github/workflows/*.yml; do
+            if ! yaml-validator "$workflow"; then
+              echo "❌ Invalid YAML syntax in $workflow"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Workflow contracts validated"
+
+      - name: Validate Lane Isolation
+        run: |
+          echo "Validating development lane isolation..."
+          
+          # Check that AI workflows only target bot branches
+          if [ -f ".github/workflows/claude-review.yml" ]; then
+            if ! grep -q "bots/claude" ".github/workflows/claude-review.yml"; then
+              echo "❌ AI workflow not properly restricted to bot branches"
+              exit 1
+            fi
+          fi
+          
+          # Check for proper author association checks
+          if [ -f ".github/workflows/claude-review.yml" ]; then
+            if ! grep -q "author_association" ".github/workflows/claude-review.yml"; then
+              echo "⚠️ Warning: AI workflow missing author association check"
+            fi
+          fi
+          
+          echo "✅ Lane isolation validated"
+
+      - name: Validate Command Structure
+        run: |
+          echo "Validating command structure..."
+          
+          if [ -d ".claude/commands" ]; then
+            # Check that command files follow naming convention
+            find .claude/commands -name "*.md" | while read -r cmd_file; do
+              if [ ! -s "$cmd_file" ]; then
+                echo "❌ Empty command file: $cmd_file"
+                exit 1
+              fi
+              
+              # Check for required frontmatter
+              if ! head -10 "$cmd_file" | grep -q "^#"; then
+                echo "❌ Command file missing header: $cmd_file"
+                exit 1
+              fi
+            done
+          fi
+          
+          echo "✅ Command structure validated"
+
+      - name: Validate Security Boundaries
+        run: |
+          echo "Validating security boundaries..."
+          
+          # Check for secrets in workflow files
+          if grep -r -i "secret\|password\|token\|key" .github/workflows/ --include="*.yml" | grep -v "secrets\." | grep -v "GITHUB_TOKEN"; then
+            echo "❌ Potential hardcoded secrets found in workflows"
+            exit 1
+          fi
+          
+          # Validate path restrictions in risk policy
+          if ! jq -e '.pathRiskAssessment.HIGH_RISK_PATHS | index(".github/workflows/**")' docs/llm/risk-policy.json > /dev/null; then
+            echo "❌ Risk policy missing protection for workflow files"
+            exit 1
+          fi
+          
+          echo "✅ Security boundaries validated"
+
+      - name: Generate Contract Report
+        run: |
+          echo "# Routing Contract Validation Report" > contract-report.md
+          echo "" >> contract-report.md
+          echo "**Validation Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> contract-report.md
+          echo "**Commit**: ${{ github.sha }}" >> contract-report.md
+          echo "**PR**: ${{ github.event.number }}" >> contract-report.md
+          echo "" >> contract-report.md
+          
+          echo "## Validated Components" >> contract-report.md
+          echo "" >> contract-report.md
+          echo "- ✅ Constitution structure and required sections" >> contract-report.md
+          echo "- ✅ Risk policy JSON schema and required keys" >> contract-report.md
+          echo "- ✅ GitHub workflow YAML syntax" >> contract-report.md
+          echo "- ✅ Development lane isolation" >> contract-report.md
+          echo "- ✅ Command structure and naming conventions" >> contract-report.md
+          echo "- ✅ Security boundaries and restrictions" >> contract-report.md
+          echo "" >> contract-report.md
+          
+          echo "## Risk Assessment Summary" >> contract-report.md
+          echo "" >> contract-report.md
+          echo "**High Risk Paths Protected**: $(jq -r '.pathRiskAssessment.HIGH_RISK_PATHS | length' docs/llm/risk-policy.json)" >> contract-report.md
+          echo "**Security Policies Defined**: $(jq -r '.securityPolicies | keys | length' docs/llm/risk-policy.json)" >> contract-report.md
+          echo "**Operational Policies**: $(jq -r '.operationalPolicies | keys | length' docs/llm/risk-policy.json)" >> contract-report.md
+          echo "" >> contract-report.md
+          
+          cat contract-report.md
+
+      - name: Upload Contract Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: routing-contract-report
+          path: contract-report.md
+          retention-days: 30
+
+  validate-constitutional-compliance:
+    name: Constitutional Compliance Check
+    runs-on: ubuntu-latest
+    needs: validate-routing-contract
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Constitutional Checksum
+        run: |
+          if [ -f "docs/llm/CONSTITUTION.CHECKSUM" ]; then
+            current_checksum=$(sha256sum docs/constitution.md | cut -d' ' -f1)
+            stored_checksum=$(cat docs/llm/CONSTITUTION.CHECKSUM)
+            
+            if [ "$current_checksum" != "$stored_checksum" ]; then
+              echo "❌ Constitution has been modified without updating checksum"
+              echo "Current: $current_checksum"
+              echo "Stored: $stored_checksum"
+              echo ""
+              echo "Run 'npm run update-constitution-checksum' to update the checksum"
+              exit 1
+            fi
+            
+            echo "✅ Constitutional checksum validated"
+          else
+            echo "⚠️ Warning: Constitution checksum file not found"
+          fi
+
+      - name: Validate Amendment Process
+        run: |
+          echo "Validating amendment process compliance..."
+          
+          # Check if constitution was modified in this PR
+          if git diff --name-only origin/main...HEAD | grep -q "docs/constitution.md"; then
+            echo "Constitution modification detected in PR"
+            
+            # Check for RFC process (look for related issues or discussions)
+            if [ -z "${{ github.event.pull_request.body }}" ] || ! echo "${{ github.event.pull_request.body }}" | grep -i "constitutional\|amendment\|rfc"; then
+              echo "⚠️ Warning: Constitution change may not follow RFC process"
+            fi
+            
+            # Check review requirements
+            if [ "${{ github.event.pull_request.requested_reviewers }}" = "[]" ]; then
+              echo "⚠️ Warning: Constitutional change should have explicit reviewers"
+            fi
+          fi
+          
+          echo "✅ Amendment process validated"
