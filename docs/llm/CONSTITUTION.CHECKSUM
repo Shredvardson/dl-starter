@@ -1,9 +1,9 @@
 {
-  "generated": "2025-09-17T06:47:42.524Z",
+  "generated": "2025-09-18T09:52:34.534Z",
   "version": "0.1.0",
   "checksums": {
-    "CLAUDE.md": "a2c0bab690295aaa",
-    "docs/llm/context-map.json": "a3041b1c4705493e",
+    "CLAUDE.md": "fd084d1be74e9550",
+    "docs/llm/context-map.json": "4661e937f799abe1",
     "docs/llm/STARTER_MANIFEST.json": "6316b778a8dac713",
     "docs/llm/NEW_APP_KICKOFF.md": "076f42b2072c81fa",
     "docs/llm/CONTRIBUTING_LLMS.md": "0362984efe675fb0",
@@ -11,6 +11,9 @@
     "packages/config/eslint.config.mjs": "0e00fd4ad1caeff6",
     "packages/config/prettier.config.js": "397ba438d0c59e1a",
     "packages/ui/styles/tokens.css": "1245fb5ec22d4cfe",
-    "apps/web/app.config.ts": "73fba51f5be58666"
+    "apps/web/app.config.ts": "73fba51f5be58666",
+    "docs/constitution.md": "37a3b7e9f205a342",
+    "docs/commands/index.json": "24517f1711b230d2",
+    "docs/llm/risk-policy.json": "8392944b35898ecd"
   }
 }

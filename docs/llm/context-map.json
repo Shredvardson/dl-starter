@@ -70,6 +70,55 @@
       "allowed": ["docs:update"],
       "avoid": [],
       "tags": ["docs"]
+    },
+    {
+      "path": "docs/constitution.md",
+      "purpose": "Project constitution & AI constraints",
+      "allowed": ["docs:update (careful)", "constitutional:update"],
+      "avoid": ["breaking existing constraints"],
+      "tags": ["docs", "constitution", "ai-guidance"]
+    },
+    {
+      "path": "specs/",
+      "purpose": "Feature specifications (what/why only)",
+      "allowed": ["spec:create", "spec:update", "clarification:add"],
+      "avoid": ["tech details", "implementation specifics"],
+      "tags": ["specs", "requirements", "spec-driven"]
+    },
+    {
+      "path": "plans/",
+      "purpose": "Technical implementation plans",
+      "allowed": ["plan:create", "plan:update", "architecture:define"],
+      "avoid": ["breaking constitutional constraints"],
+      "tags": ["plans", "architecture", "spec-driven"]
+    },
+    {
+      "path": "tasks/",
+      "purpose": "Actionable implementation breakdowns",
+      "allowed": ["tasks:create", "tasks:update", "progress:track"],
+      "avoid": ["skipping TDD order"],
+      "tags": ["tasks", "implementation", "spec-driven"]
+    },
+    {
+      "path": ".claude/commands/spec/",
+      "purpose": "Spec-driven development commands",
+      "allowed": ["command:update", "workflow:improve"],
+      "avoid": ["breaking command contracts"],
+      "tags": ["commands", "spec-driven", "workflow"]
+    },
+    {
+      "path": "docs/commands/index.json",
+      "purpose": "Command discovery and routing for AI agents",
+      "allowed": ["command:index", "routing:update", "discovery:improve"],
+      "avoid": ["breaking command contracts"],
+      "tags": ["commands", "discovery", "routing", "ai-guidance"]
+    },
+    {
+      "path": "docs/llm/risk-policy.json",
+      "purpose": "Machine-readable MCP tool risk policy and HITL enforcement",
+      "allowed": ["policy:read", "risk:assess", "hitl:enforce"],
+      "avoid": ["bypassing safety controls"],
+      "tags": ["safety", "mcp", "hitl", "risk-assessment", "ai-guidance"]
     }
   ]
 }
