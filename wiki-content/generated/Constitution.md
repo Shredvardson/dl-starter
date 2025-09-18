@@ -1,128 +1,140 @@
-# Project Constitution
+# Dissonance Labs Starter Constitution
 
-## Mission & Philosophy
-**Optimize for: fast, correct TDD; secure defaults; zero-drift docs.**
+## Preamble
 
-This constitution governs all AI-assisted development in this project. All Claude Code commands, GitHub workflows, and specifications must align with these principles.
+This constitution establishes the architectural decisions, governance patterns, and operational guidelines for the Dissonance Labs Starter project. All development lanes (Human and AI-Powered) must adhere to these principles.
 
-## Core Guardrails
-- **No secrets** in prompts/code
-- **TDD first**: tests before implementation  
-- **Conventional commits** only
-- **Least-deps**: justify new packages
-- **Security-first**: defensive patterns by default
+## Article I: Architectural Principles
 
-## Technical Architecture Decisions
+### Section 1.1: Security First
+- **Secrets Management**: No secrets in code, prompts, or version control
+- **Environment Isolation**: Strict separation between development, staging, and production
+- **Secure Defaults**: All features implement security by default, not as an afterthought
+- **Input Validation**: All user inputs must be validated and sanitized
 
-### Tech Stack (Locked)
-- **Frontend**: Next.js 15 with App Router
-- **Language**: TypeScript with strict configuration  
-- **Styling**: Tailwind CSS with design tokens only
-- **Testing**: Playwright for e2e, Jest for unit tests
-- **Quality**: ESLint, TypeScript, automated review
-- **Deployment**: Vercel with GitHub Actions CI/CD
+### Section 1.2: Test-Driven Development
+- **Red-Green-Refactor**: All features begin with failing tests
+- **Test Coverage**: Minimum 80% coverage for new code paths
+- **Integration Testing**: Critical user journeys must have end-to-end test coverage
+- **Test Isolation**: Tests must be deterministic and independent
 
-### Development Constraints
-- **File Structure**: Apps in `apps/`, packages in `packages/`, shared utilities in `@/lib`
-- **Environment**: All config via `@/lib/env.ts` pattern
-- **UI Patterns**: No hardcoded hex colors, tokenized Tailwind only
-- **Dependencies**: Minimal additions, justify in PRs
-- **Testing Strategy**: Contract → integration → e2e → unit test order
+### Section 1.3: Dependency Management
+- **Least Dependencies**: Justify every new package addition
+- **Security Auditing**: Regular dependency vulnerability scanning
+- **Version Pinning**: Lock major versions, allow minor/patch updates
+- **Bundle Size**: Monitor and control frontend bundle impact
 
-### AI Collaboration Rules
-- **Specification-Driven**: Use `/specify` → `/plan` → `/tasks` workflow for complex features
-- **Issue-Based Planning**: All features start as GitHub issues with outcomes captured
-- **Learning Capture**: Document patterns and decisions for reuse
-- **Quality Gates**: All code must pass doctor, lint, typecheck, e2e tests
-- **Security Review**: Use `/dev:refactor-secure` for sensitive changes
+## Article II: Development Lanes
 
-## Workflow Integration
+### Section 2.1: Human Development Lane
+- **Primary Authority**: Human developers have final authority over all decisions
+- **Code Review**: All human contributions require peer review
+- **Quality Gates**: Must pass all CI/CD checks before merge
+- **Documentation**: Changes require corresponding documentation updates
 
-### Planning Phase Commands
-1. **`/specify`**: Pure requirements (what/why only, no tech details)
-2. **`/plan`**: Technical implementation within constitutional constraints  
-3. **`/tasks`**: Actionable breakdown with testing strategy
+### Section 2.2: AI-Powered Development Lane
+- **Advisory Role**: AI contributions are advisory and require human approval
+- **Branch Isolation**: AI changes restricted to `bots/claude/*` branches
+- **Quality Standards**: Same testing and security requirements as human lane
+- **Promotion Process**: AI contributions require explicit human promotion via labels
 
-### Implementation Phase  
-4. **`/test:scaffold`**: Create tests following constitution order
-5. **`/dev:implement`**: Build within architectural constraints
-6. **`/dev:refactor-secure`**: Apply security-first improvements
+### Section 2.3: Lane Coordination
+- **No Bot-to-Bot**: AI systems cannot trigger other AI systems
+- **Merge Requirements**: All AI PRs need maintainer approval and `promote` label
+- **Conflict Resolution**: Human decisions override AI recommendations
+- **Audit Trail**: All AI interactions must be logged and traceable
 
-### Quality & Release Phase
-7. **`/quality:run-linter`**: Enforce code standards
-8. **`/git:commit`**: Conventional commits with proper messaging
-9. **`/git:prepare-pr`**: Documentation and verification steps
+## Article III: Quality Assurance
 
-## Artifact Management
-- **Specifications**: Store in `/specs` folder with feature numbering
-- **Technical Plans**: Store in `/plans` folder linked to specifications  
-- **Task Breakdowns**: Store in `/tasks` folder with implementation tracking
-- **Cross-References**: All artifacts link to related GitHub issues
+### Section 3.1: Automated Quality Gates
+- **TypeScript**: Strict type checking with no `any` types in new code
+- **Linting**: ESLint/Prettier compliance required
+- **Security Scanning**: Automated vulnerability detection on all PRs
+- **Performance**: Bundle size and runtime performance monitoring
 
-## AI Behavior Constraints
-- **Clarification**: Mark ambiguities with `[NEEDS_CLARIFICATION]` 
-- **File Order**: Always create contracts, then tests, then implementation
-- **Documentation**: Update `docs/llm/context-map.json` for new paths
-- **Patterns**: Reference existing code conventions and utilities
-- **Security**: Never expose secrets, always validate inputs
+### Section 3.2: Manual Review Processes
+- **Security Review**: Human security review for sensitive changes
+- **Architecture Review**: Significant architectural changes require team consensus
+- **Breaking Changes**: Breaking changes require migration guides and deprecation notices
+- **Release Notes**: All releases require human-authored release notes
 
-## Tool Permissions & Safety
+## Article IV: Data and Privacy
 
-### MCP Tool Risk Matrix
+### Section 4.1: Data Minimization
+- **Collect Minimally**: Only collect data necessary for functionality
+- **Store Securely**: Encrypt sensitive data at rest and in transit
+- **Retention Policies**: Implement data retention and deletion policies
+- **User Consent**: Respect user privacy preferences and consent
 
-| Tool | Allowed Operations | Risk Level | HITL Required | Justification |
-|------|-------------------|------------|---------------|---------------|
-| **File System Tools** | | | | |
-| Read | Read any project file | LOW | No | Information gathering |
-| Edit | Modify existing files | MEDIUM | No | Controlled changes to known files |
-| Write | Create new files | MEDIUM | Yes | New files require human approval |
-| MultiEdit | Batch file modifications | HIGH | Yes | Multiple simultaneous changes |
-| **Execution Tools** | | | | |
-| Bash | Run shell commands | HIGH | Context | Dangerous commands require confirmation |
-| mcp__ide__executeCode | Execute code in kernel | HIGH | Yes | Code execution always requires approval |
-| **External Services** | | | | |
-| WebFetch | Fetch external URLs | MEDIUM | No | Read-only web access |
-| WebSearch | Search the internet | LOW | No | Information gathering |
-| GitHub MCP | Repository operations | MEDIUM | Context | Write operations need confirmation |
-| **AI/LLM Tools** | | | | |
-| Task (Agent) | Spawn sub-agents | HIGH | Yes | Sub-agents inherit permissions |
+### Section 4.2: Telemetry and Monitoring
+- **Error Tracking**: Implement comprehensive error monitoring
+- **Performance Metrics**: Track application performance and user experience
+- **Privacy First**: Telemetry must not include PII or sensitive information
+- **Opt-out**: Users must be able to opt out of non-essential telemetry
 
-### Human-in-the-Loop (HITL) Gates
+## Article V: Release Management
 
-**Always Require Confirmation:**
-- Creating new files with Write tool
-- Executing code with mcp__ide__executeCode  
-- Spawning Task agents for complex operations
-- Batch modifications with MultiEdit
-- Any GitHub operations that modify repository state
+### Section 5.1: Versioning
+- **Semantic Versioning**: Follow semver for all releases
+- **Release Branches**: Use dedicated release branches for stabilization
+- **Hotfix Process**: Defined process for emergency security/bug fixes
+- **Feature Flags**: Use feature flags for gradual rollouts
 
-**Context-Dependent Confirmation:**
-- Bash commands involving system changes, installations, or deletions
-- File operations outside of standard development paths
-- API calls to external services beyond reading
+### Section 5.2: Deployment
+- **Blue-Green Deployment**: Zero-downtime deployments required
+- **Rollback Strategy**: Automated rollback on deployment failures
+- **Health Checks**: Comprehensive health monitoring post-deployment
+- **Change Management**: Document all production changes
 
-**Auto-Approved (No HITL):**
-- Reading files within project directory
-- Web searches and information gathering
-- Editing existing files within established patterns
-- Standard development commands (npm, git status, etc.)
+## Article VI: Compliance and Governance
 
-### Command Risk Levels
+### Section 6.1: License Compliance
+- **Open Source**: MIT license for maximum compatibility
+- **Dependency Licensing**: Verify license compatibility for all dependencies
+- **Attribution**: Proper attribution for all third-party code
+- **Export Control**: Comply with relevant export control regulations
 
-Commands inherit risk levels based on their operations:
+### Section 6.2: Security Compliance
+- **Vulnerability Disclosure**: Responsible disclosure process for security issues
+- **Security Updates**: Timely application of security patches
+- **Access Control**: Role-based access control for all systems
+- **Audit Logging**: Comprehensive audit trails for security events
 
-- **HIGH RISK**: `/tasks` (creates multiple files), `/dev:implement` (writes code)
-- **MEDIUM RISK**: `/plan` (creates files), `/test:scaffold` (creates tests)  
-- **LOW RISK**: `/specify` (planning only), `/quality:run-linter` (read-only checks)
+## Article VII: Amendment Process
 
-**Risk Escalation Rules:**
-1. Any command creating 3+ files → HIGH risk → HITL required
-2. Any command touching security-sensitive paths → HIGH risk → HITL required
-3. Any command with external dependencies → MEDIUM risk → Context review
+### Section 7.1: Constitutional Changes
+- **Proposal Process**: Constitutional changes require RFC process
+- **Review Period**: Minimum 7-day review period for constitutional amendments
+- **Consensus**: Constitutional changes require unanimous maintainer approval
+- **Documentation**: All changes must be documented with rationale
+
+### Section 7.2: Emergency Procedures
+- **Security Emergencies**: Security vulnerabilities may bypass normal process
+- **Rollback Authority**: Maintainers can emergency rollback any change
+- **Incident Response**: Defined incident response procedures for outages
+- **Post-Mortem**: All emergencies require post-incident analysis
+
+## Article VIII: Enforcement
+
+### Section 8.1: Automated Enforcement
+- **CI/CD Gates**: Automated enforcement of quality and security standards
+- **Branch Protection**: Protected branches enforce review requirements
+- **Status Checks**: Required status checks prevent non-compliant merges
+- **Automated Remediation**: Where possible, automatically fix policy violations
+
+### Section 8.2: Human Oversight
+- **Maintainer Authority**: Maintainers can override automated systems in emergencies
+- **Appeal Process**: Contributors can appeal automated decisions
+- **Education**: Focus on education over punishment for policy violations
+- **Continuous Improvement**: Regular review and improvement of enforcement mechanisms
 
 ---
-*This constitution is the source of truth for all AI agents working on this project.*
+
+**Ratified**: 2025-09-18  
+**Version**: 1.0.0  
+**Next Review**: 2025-12-18  
+
+This constitution serves as the foundational governance document for all development activities within the Dissonance Labs Starter project. All contributors, human and AI, are bound by these principles.
 
 ---
-*This is a read-only copy. Source of truth: [`docs/constitution.md`](https://github.com/dissonance-labs/dl-starter-new/blob/main/docs/constitution.md)*
-*Last updated: 2025-09-18*
+*Copied from docs/constitution.md*

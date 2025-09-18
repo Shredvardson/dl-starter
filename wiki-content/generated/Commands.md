@@ -1,144 +1,292 @@
-# Command Reference
+# Commands Reference
 
-**Quick reference for AI-assisted development commands.**
-
-## Decision Framework
-
-- ⚠️ Risk: authentication/payments/data
-- ⚠️ Scope: 3+ files or 2+ hours
-- ⚠️ Clarity: requirements unclear
-- ⚠️ Dependencies: new packages/services
-**→ Use Spec-Driven Workflow** (`/specify` → `/plan` → `/tasks`)
-
-- ✅ Single component changes
-- ✅ UI tweaks and styling
-- ✅ Bug fixes
-- ✅ Documentation updates
-- ✅ Anything completable in 1-2 hours
-**→ Use Simple Workflow** (`/dev:plan-feature`)
-
-## Commands by Category
+## Available Commands
 
 ### Documentation
 
-#### `generate`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Standard development workflow
+#### generate
 
+**Purpose**: No description available
+
+**When to use**: Setting up tests and TDD workflows
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: docs, testing
+
+---
 
 ### Git Workflow
 
-#### `/git:commit`
-**Purpose:** Generate a Conventional Commit message for staged changes.
-**When:** Code quality and security improvements
-**Example:** Create conventional commit for completed feature
+#### commit
 
-#### `prepare-pr`
-**Purpose:** No description available
-**When:** GitHub workflow and project management
-**Example:** Standard development workflow
+**Purpose**: No description available
 
-#### `tag-release`
-**Purpose:** No description available
-**When:** General development tasks
-**Example:** Standard development workflow
+**When to use**: Setting up tests and TDD workflows
 
-#### `workflow`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Standard development workflow
+**Example**: Create conventional commit for completed feature
 
+**Risk Level**: LOW
+
+**Tags**: git, testing, implementation
+
+---
+
+#### prepare-pr
+
+**Purpose**: No description available
+
+**When to use**: Setting up tests and TDD workflows
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: git, testing
+
+---
+
+#### tag-release
+
+**Purpose**: No description available
+
+**When to use**: General development tasks
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: git
+
+---
+
+#### workflow
+
+**Purpose**: No description available
+
+**When to use**: Setting up tests and TDD workflows
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: git, testing
+
+---
 
 ### GitHub Integration
 
-#### `/github:capture-learning`
-**Purpose:** Update an existing issue with implementation outcomes and learnings.
-**When:** GitHub workflow and project management
-**Example:** Create GitHub issue with proper templates
+#### capture-learning
 
-#### `/github:create-issue`
-**Purpose:** Create a GitHub issue from our current planning discussion with proper template and context linking.
-**When:** Code quality and security improvements
-**Example:** Create GitHub issue with proper templates
+**Purpose**: No description available
 
-#### `/github:update-wiki`
-**Purpose:** Sync current project state to wiki pages for GPT-5 context.
-**When:** GitHub workflow and project management
-**Example:** Create GitHub issue with proper templates
+**When to use**: GitHub workflow and project management
 
+**Example**: Create GitHub issue with proper templates
+
+**Risk Level**: LOW
+
+**Tags**: github, planning, implementation
+
+---
+
+#### create-issue
+
+**Purpose**: No description available
+
+**When to use**: GitHub workflow and project management
+
+**Example**: Create GitHub issue with proper templates
+
+**Risk Level**: LOW
+
+**Tags**: github, planning, requirements
+
+---
+
+#### update-wiki
+
+**Purpose**: No description available
+
+**When to use**: GitHub workflow and project management
+
+**Example**: Create GitHub issue with proper templates
+
+**Risk Level**: LOW
+
+**Tags**: github
+
+---
 
 ### Quality Assurance
 
-#### `run-linter`
-**Purpose:** No description available
-**When:** GitHub workflow and project management
-**Example:** Standard development workflow
+#### run-linter
 
+**Purpose**: No description available
+
+**When to use**: General development tasks
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: quality
+
+---
 
 ### Review & Quality
 
-#### `self-critique`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Standard development workflow
+#### self-critique
 
+**Purpose**: No description available
+
+**When to use**: Setting up tests and TDD workflows
+
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: review, testing, planning
+
+---
 
 ### Simple Development
 
-#### `/dev:plan-feature`
-**Purpose:** Plan a small, safe feature with clear acceptance criteria.
-**When:** Small changes and quick tasks
-**Example:** Create technical plan for auth implementation
+#### /dev:init-new-app — Initialize a new app from this starter
 
-#### `implement`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Build feature following established plan
+**Purpose**: No description available
 
-#### `init-new-app`
-**Purpose:** No description available
-**When:** General development tasks
-**Example:** Standard development workflow
+**When to use**: Small changes and quick tasks
 
-#### `refactor-secure`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Add security improvements to API endpoints
+**Example**: Standard development workflow
 
+**Risk Level**: LOW
+
+**Tags**: dev, planning, implementation
+
+---
+
+#### implement
+
+**Purpose**: No description available
+
+**When to use**: Small changes and quick tasks
+
+**Example**: Build feature following established plan
+
+**Risk Level**: HIGH (Requires Human Approval)
+
+**Tags**: dev, testing, implementation
+
+---
+
+#### plan-feature
+
+**Purpose**: No description available
+
+**When to use**: Small changes and quick tasks
+
+**Example**: Create technical plan for auth implementation
+
+**Risk Level**: MEDIUM
+
+**Tags**: dev, testing, planning, requirements
+
+---
+
+#### refactor-secure
+
+**Purpose**: No description available
+
+**When to use**: Small changes and quick tasks
+
+**Example**: Add security improvements to API endpoints
+
+**Risk Level**: LOW
+
+**Tags**: dev, testing, security
+
+---
 
 ### Spec-Driven Development
 
-#### `/plan`
-**Purpose:** Create technical implementation plan within constitutional constraints.
-**When:** Complex features requiring structured approach
-**Example:** Create technical plan for auth implementation
+#### plan
 
-#### `/specify`
-**Purpose:** Define pure requirements - what and why only, no technical details.
-**When:** GitHub workflow and project management
-**Example:** Define requirements for user authentication system
+**Purpose**: No description available
 
-#### `/tasks`
-**Purpose:** Break down technical plan into actionable implementation tasks with TDD focus.
-**When:** Code quality and security improvements
-**Example:** Break down auth feature into TDD tasks
+**When to use**: Complex features requiring structured approach
 
+**Example**: Create technical plan for auth implementation
+
+**Risk Level**: MEDIUM
+
+**Tags**: spec, testing, security, planning, implementation, requirements
+
+---
+
+#### specify
+
+**Purpose**: No description available
+
+**When to use**: Complex features requiring structured approach
+
+**Example**: Define requirements for user authentication system
+
+**Risk Level**: MEDIUM
+
+**Tags**: spec, planning, implementation, requirements
+
+---
+
+#### tasks
+
+**Purpose**: No description available
+
+**When to use**: Complex features requiring structured approach
+
+**Example**: Break down auth feature into TDD tasks
+
+**Risk Level**: HIGH (Requires Human Approval)
+
+**Tags**: spec, testing, security, planning, implementation, quality
+
+---
 
 ### Testing
 
-#### `scaffold`
-**Purpose:** No description available
-**When:** Setting up tests and TDD workflows
-**Example:** Standard development workflow
+#### scaffold
 
+**Purpose**: No description available
 
-## Routing Rules
+**When to use**: Setting up tests and TDD workflows
 
-**Complex Features:** authentication, database, payments, api, infra
-**Simple Tasks:** styling, copy, props, refactor, docs
-**Security Sensitive:** auth, payments, user-data, api-keys, validation
+**Example**: Standard development workflow
+
+**Risk Level**: LOW
+
+**Tags**: test, testing, planning, implementation
 
 ---
-*Auto-generated from [`docs/commands/index.json`](https://github.com/dissonance-labs/dl-starter-new/blob/main/docs/commands/index.json)*
-*Last updated: 2025-09-18*
+
+## Decision Framework
+
+{
+  "spec_driven_triggers": [
+    "Risk: authentication/payments/data",
+    "Scope: 3+ files or 2+ hours",
+    "Clarity: requirements unclear",
+    "Dependencies: new packages/services"
+  ],
+  "simple_workflow_default": [
+    "Single component changes",
+    "UI tweaks and styling",
+    "Bug fixes",
+    "Documentation updates",
+    "Anything completable in 1-2 hours"
+  ]
+}
+
+---
+*Generated from docs/commands/index.json*
