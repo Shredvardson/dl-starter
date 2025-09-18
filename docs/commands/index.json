@@ -1,14 +1,180 @@
 {
   "version": 1,
-  "generated": "2025-09-18T10:43:20.971Z",
+  "generated": "2025-09-18T12:26:37.556Z",
   "commands": [
+    {
+      "name": "/dev:init-new-app — Initialize a new app from this starter",
+      "path": ".claude/commands/dev/init-new-app.md",
+      "category": "Simple Development",
+      "tags": [
+        "dev",
+        "planning",
+        "implementation"
+      ],
+      "when": "Small changes and quick tasks",
+      "purpose": "No description available",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "capture-learning",
+      "path": ".claude/commands/github/capture-learning.md",
+      "category": "GitHub Integration",
+      "tags": [
+        "github",
+        "planning",
+        "implementation"
+      ],
+      "when": "GitHub workflow and project management",
+      "purpose": "No description available",
+      "example": "Create GitHub issue with proper templates",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "commit",
+      "path": ".claude/commands/git/commit.md",
+      "category": "Git Workflow",
+      "tags": [
+        "git",
+        "testing",
+        "implementation"
+      ],
+      "when": "Setting up tests and TDD workflows",
+      "purpose": "No description available",
+      "example": "Create conventional commit for completed feature",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "create-issue",
+      "path": ".claude/commands/github/create-issue.md",
+      "category": "GitHub Integration",
+      "tags": [
+        "github",
+        "planning",
+        "requirements"
+      ],
+      "when": "GitHub workflow and project management",
+      "purpose": "No description available",
+      "example": "Create GitHub issue with proper templates",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
     {
       "name": "generate",
       "path": ".claude/commands/docs/generate.md",
       "category": "Documentation",
       "tags": [
         "docs",
+        "testing"
+      ],
+      "when": "Setting up tests and TDD workflows",
+      "purpose": "No description available",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "implement",
+      "path": ".claude/commands/dev/implement.md",
+      "category": "Simple Development",
+      "tags": [
+        "dev",
         "testing",
+        "implementation"
+      ],
+      "when": "Small changes and quick tasks",
+      "purpose": "No description available",
+      "example": "Build feature following established plan",
+      "riskLevel": "HIGH",
+      "requiresHITL": true
+    },
+    {
+      "name": "plan",
+      "path": ".claude/commands/spec/plan.md",
+      "category": "Spec-Driven Development",
+      "tags": [
+        "spec",
+        "testing",
+        "security",
+        "planning",
+        "implementation",
+        "requirements"
+      ],
+      "when": "Complex features requiring structured approach",
+      "purpose": "No description available",
+      "example": "Create technical plan for auth implementation",
+      "riskLevel": "MEDIUM",
+      "requiresHITL": false
+    },
+    {
+      "name": "plan-feature",
+      "path": ".claude/commands/dev/plan-feature.md",
+      "category": "Simple Development",
+      "tags": [
+        "dev",
+        "testing",
+        "planning",
+        "requirements"
+      ],
+      "when": "Small changes and quick tasks",
+      "purpose": "No description available",
+      "example": "Create technical plan for auth implementation",
+      "riskLevel": "MEDIUM",
+      "requiresHITL": false
+    },
+    {
+      "name": "prepare-pr",
+      "path": ".claude/commands/git/prepare-pr.md",
+      "category": "Git Workflow",
+      "tags": [
+        "git",
+        "testing"
+      ],
+      "when": "Setting up tests and TDD workflows",
+      "purpose": "No description available",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "refactor-secure",
+      "path": ".claude/commands/dev/refactor-secure.md",
+      "category": "Simple Development",
+      "tags": [
+        "dev",
+        "testing",
+        "security"
+      ],
+      "when": "Small changes and quick tasks",
+      "purpose": "No description available",
+      "example": "Add security improvements to API endpoints",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "run-linter",
+      "path": ".claude/commands/quality/run-linter.md",
+      "category": "Quality Assurance",
+      "tags": [
+        "quality"
+      ],
+      "when": "General development tasks",
+      "purpose": "No description available",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "scaffold",
+      "path": ".claude/commands/test/scaffold.md",
+      "category": "Testing",
+      "tags": [
+        "test",
+        "testing",
+        "planning",
         "implementation"
       ],
       "when": "Setting up tests and TDD workflows",
@@ -18,31 +184,34 @@
       "requiresHITL": false
     },
     {
-      "name": "/git:commit",
-      "path": ".claude/commands/git/commit.md",
-      "category": "Git Workflow",
+      "name": "self-critique",
+      "path": ".claude/commands/review/self-critique.md",
+      "category": "Review & Quality",
       "tags": [
-        "git",
-        "testing"
+        "review",
+        "testing",
+        "planning"
       ],
-      "when": "Code quality and security improvements",
-      "purpose": "Generate a Conventional Commit message for staged changes.",
-      "example": "Create conventional commit for completed feature",
+      "when": "Setting up tests and TDD workflows",
+      "purpose": "No description available",
+      "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
     },
     {
-      "name": "prepare-pr",
-      "path": ".claude/commands/git/prepare-pr.md",
-      "category": "Git Workflow",
+      "name": "specify",
+      "path": ".claude/commands/spec/specify.md",
+      "category": "Spec-Driven Development",
       "tags": [
-        "git",
-        "github"
+        "spec",
+        "planning",
+        "implementation",
+        "requirements"
       ],
-      "when": "GitHub workflow and project management",
+      "when": "Complex features requiring structured approach",
       "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "LOW",
+      "example": "Define requirements for user authentication system",
+      "riskLevel": "MEDIUM",
       "requiresHITL": false
     },
     {
@@ -59,216 +228,43 @@
       "requiresHITL": false
     },
     {
-      "name": "workflow",
-      "path": ".claude/commands/git/workflow.md",
-      "category": "Git Workflow",
-      "tags": [
-        "git",
-        "testing"
-      ],
-      "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": false
-    },
-    {
-      "name": "/github:capture-learning",
-      "path": ".claude/commands/github/capture-learning.md",
-      "category": "GitHub Integration",
-      "tags": [
-        "github",
-        "planning",
-        "implementation"
-      ],
-      "when": "GitHub workflow and project management",
-      "purpose": "Update an existing issue with implementation outcomes and learnings.",
-      "example": "Create GitHub issue with proper templates",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": true
-    },
-    {
-      "name": "/github:create-issue",
-      "path": ".claude/commands/github/create-issue.md",
-      "category": "GitHub Integration",
-      "tags": [
-        "github",
-        "security",
-        "planning"
-      ],
-      "when": "Code quality and security improvements",
-      "purpose": "Create a GitHub issue from our current planning discussion with proper template and context linking.",
-      "example": "Create GitHub issue with proper templates",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": true
-    },
-    {
-      "name": "/github:update-wiki",
-      "path": ".claude/commands/github/update-wiki.md",
-      "category": "GitHub Integration",
-      "tags": [
-        "github",
-        "planning"
-      ],
-      "when": "GitHub workflow and project management",
-      "purpose": "Sync current project state to wiki pages for GPT-5 context.",
-      "example": "Create GitHub issue with proper templates",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
-    {
-      "name": "run-linter",
-      "path": ".claude/commands/quality/run-linter.md",
-      "category": "Quality Assurance",
-      "tags": [
-        "quality",
-        "github"
-      ],
-      "when": "GitHub workflow and project management",
-      "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
-    {
-      "name": "self-critique",
-      "path": ".claude/commands/review/self-critique.md",
-      "category": "Review & Quality",
-      "tags": [
-        "review",
-        "testing",
-        "requirements"
-      ],
-      "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
-    {
-      "name": "/dev:plan-feature",
-      "path": ".claude/commands/dev/plan-feature.md",
-      "category": "Simple Development",
-      "tags": [
-        "dev",
-        "testing",
-        "requirements",
-        "planning"
-      ],
-      "when": "Small changes and quick tasks",
-      "purpose": "Plan a small, safe feature with clear acceptance criteria.",
-      "example": "Create technical plan for auth implementation",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": false
-    },
-    {
-      "name": "implement",
-      "path": ".claude/commands/dev/implement.md",
-      "category": "Simple Development",
-      "tags": [
-        "dev",
-        "testing",
-        "implementation"
-      ],
-      "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
-      "example": "Build feature following established plan",
-      "riskLevel": "HIGH",
-      "requiresHITL": true
-    },
-    {
-      "name": "init-new-app",
-      "path": ".claude/commands/dev/init-new-app.md",
-      "category": "Simple Development",
-      "tags": [
-        "dev",
-        "planning"
-      ],
-      "when": "General development tasks",
-      "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
-    {
-      "name": "refactor-secure",
-      "path": ".claude/commands/dev/refactor-secure.md",
-      "category": "Simple Development",
-      "tags": [
-        "dev",
-        "testing",
-        "implementation"
-      ],
-      "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
-      "example": "Add security improvements to API endpoints",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
-    {
-      "name": "/plan",
-      "path": ".claude/commands/spec/plan.md",
-      "category": "Spec-Driven Development",
-      "tags": [
-        "spec",
-        "testing",
-        "requirements",
-        "planning",
-        "implementation",
-        "github"
-      ],
-      "when": "Complex features requiring structured approach",
-      "purpose": "Create technical implementation plan within constitutional constraints.",
-      "example": "Create technical plan for auth implementation",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": false
-    },
-    {
-      "name": "/specify",
-      "path": ".claude/commands/spec/specify.md",
-      "category": "Spec-Driven Development",
-      "tags": [
-        "spec",
-        "requirements",
-        "planning",
-        "implementation",
-        "github"
-      ],
-      "when": "GitHub workflow and project management",
-      "purpose": "Define pure requirements - what and why only, no technical details.",
-      "example": "Define requirements for user authentication system",
-      "riskLevel": "MEDIUM",
-      "requiresHITL": false
-    },
-    {
-      "name": "/tasks",
+      "name": "tasks",
       "path": ".claude/commands/spec/tasks.md",
       "category": "Spec-Driven Development",
       "tags": [
         "spec",
         "testing",
         "security",
-        "requirements",
         "planning",
         "implementation",
-        "github",
         "quality"
       ],
-      "when": "Code quality and security improvements",
-      "purpose": "Break down technical plan into actionable implementation tasks with TDD focus.",
+      "when": "Complex features requiring structured approach",
+      "purpose": "No description available",
       "example": "Break down auth feature into TDD tasks",
       "riskLevel": "HIGH",
       "requiresHITL": true
     },
     {
-      "name": "scaffold",
-      "path": ".claude/commands/test/scaffold.md",
-      "category": "Testing",
+      "name": "update-wiki",
+      "path": ".claude/commands/github/update-wiki.md",
+      "category": "GitHub Integration",
       "tags": [
-        "test",
-        "testing",
-        "planning",
-        "implementation"
+        "github"
+      ],
+      "when": "GitHub workflow and project management",
+      "purpose": "No description available",
+      "example": "Create GitHub issue with proper templates",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "workflow",
+      "path": ".claude/commands/git/workflow.md",
+      "category": "Git Workflow",
+      "tags": [
+        "git",
+        "testing"
       ],
       "when": "Setting up tests and TDD workflows",
       "purpose": "No description available",
