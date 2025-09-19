@@ -40,6 +40,7 @@
     "wiki:generate": "node scripts/generate-wiki.js",
     "commands:generate": "node scripts/generate-command-index.js",
     "commands:check": "node scripts/generate-command-index.js && git diff --exit-code docs/commands/index.json || (echo 'Command index out of sync. Run: npm run commands:generate' && exit 1)",
+    "commands:validate-inventory": "node scripts/validate-command-inventory.js",
     "new-spec": "node scripts/new-spec.mjs",
     "telemetry:report": "tsx scripts/telemetry-report.ts",
     "changeset": "changeset",

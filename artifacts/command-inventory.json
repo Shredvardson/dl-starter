@@ -91,8 +91,8 @@
         "`pnpm typecheck && pnpm build`"
       ],
       "paths": [
-        "`docs/llm/STARTER_MANIFEST.json`",
-        "`docs/llm/NEW_APP_KICKOFF.md`"
+        "docs/llm/STARTER_MANIFEST.json",
+        "docs/llm/NEW_APP_KICKOFF.md"
       ],
       "anchors": []
     },
@@ -111,19 +111,12 @@
     },
     ".claude/commands/docs/generate.md": {
       "scripts": [],
-      "paths": [
-        "`/docs:generate`",
-        "`\n   - Component props and usage\n   - Installation/development setup\n   - Available scripts in `",
-        "`/docs:generate`",
-        "`/docs:generate --dry-run`"
-      ],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/git/commit.md": {
       "scripts": [],
-      "paths": [
-        "`.  \n3) Write a concise Conventional Commit subject (≤72 chars) and an optional 2–4 bullet body.\n4) Use types: feat|fix|chore|docs|refactor|test|ci|build.\n5) Focus on the _user-visible_ impact; avoid file-by-file noise.\n6) Produce commit **artifacts** and **link** results in related Issue/PR.\n7) Emit **Result**: commit created, message used, and next suggested command.\n\n**Examples:**  \n- `"
-      ],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/git/prepare-pr.md": {
@@ -145,15 +138,13 @@
         "`pnpm git:finish`"
       ],
       "paths": [
-        "`scripts/git-workflow.sh`"
+        "scripts/git-workflow.sh"
       ],
       "anchors": []
     },
     ".claude/commands/github/capture-learning.md": {
       "scripts": [],
-      "paths": [
-        "` decision rules.  \n2) Find the related GitHub issue for our current work and update the outcome section with:\n   - What actually happened vs planned\n   - Key learnings and patterns discovered\n   - Links to created artifacts (PRs, docs, wiki updates)\n   - Follow-up issues or tasks identified\n   - Reusable patterns for similar future work\n3) Close the issue if complete or update status/labels appropriately.\n4) Produce learning **artifacts** and **link** results in the related Issue/PR.\n5) Emit **Result**: issue updated, learnings captured, and next suggested command.\n\n**Examples:**  \n- `"
-      ],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/github/create-issue.md": {
@@ -179,7 +170,7 @@
     ".claude/commands/spec/plan.md": {
       "scripts": [],
       "paths": [
-        "`docs/constitution.md`"
+        "docs/constitution.md"
       ],
       "anchors": []
     },

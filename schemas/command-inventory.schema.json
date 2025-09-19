@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Command Inventory Schema",
+  "description": "Schema for validating command inventory JSON files",
+  "type": "object",
+  "patternProperties": {
+    "^\\.claude/commands/.+\\.md$": {
+      "type": "object",
+      "properties": {
+        "scripts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9/_.-]+$",
+            "not": {
+              "anyOf": [
+                { "pattern": "`" },
+                { "pattern": "\\n" },
+                { "pattern": "\\r" },
+                { "pattern": "\\*\\*" },
+                { "pattern": "^\\s*-\\s" },
+                { "pattern": "^/[a-zA-Z]" }
+              ]
+            }
+          }
+        },
+        "anchors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["scripts", "paths", "anchors"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
