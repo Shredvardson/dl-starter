@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2025-09-19T16:48:48.543Z",
+  "generated": "2025-09-19T16:57:51.513Z",
   "commands": [
     {
       "name": "capture-learning",
@@ -141,6 +141,23 @@
       ],
       "when": "Setting up tests and TDD workflows",
       "purpose": "\"Generated PR description\" }",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
+    },
+    {
+      "name": "README",
+      "path": ".claude/commands/README.md",
+      "category": "General",
+      "tags": [
+        "testing",
+        "planning",
+        "implementation",
+        "requirements",
+        "quality"
+      ],
+      "when": "Setting up tests and TDD workflows",
+      "purpose": "No description available",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false

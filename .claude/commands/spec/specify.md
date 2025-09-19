@@ -46,7 +46,7 @@ timeouts:
   hardSeconds: 600
 
 idempotent: true
-dryRun: false
+dryRun: true
 estimatedRuntimeSec: 240
 costHints: "Low I/O; requirements analysis"
 
