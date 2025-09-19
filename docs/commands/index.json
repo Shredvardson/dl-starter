@@ -1,22 +1,7 @@
 {
   "version": 1,
-  "generated": "2025-09-18T12:29:45.135Z",
+  "generated": "2025-09-19T06:54:49.053Z",
   "commands": [
-    {
-      "name": "/dev:init-new-app — Initialize a new app from this starter",
-      "path": ".claude/commands/dev/init-new-app.md",
-      "category": "Simple Development",
-      "tags": [
-        "dev",
-        "planning",
-        "implementation"
-      ],
-      "when": "Small changes and quick tasks",
-      "purpose": "No description available",
-      "example": "Standard development workflow",
-      "riskLevel": "LOW",
-      "requiresHITL": false
-    },
     {
       "name": "capture-learning",
       "path": ".claude/commands/github/capture-learning.md",
@@ -27,7 +12,7 @@
         "implementation"
       ],
       "when": "GitHub workflow and project management",
-      "purpose": "No description available",
+      "purpose": "\"Captured implementation learnings\" }",
       "example": "Create GitHub issue with proper templates",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -39,10 +24,11 @@
       "tags": [
         "git",
         "testing",
+        "planning",
         "implementation"
       ],
       "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
+      "purpose": "\"Generated commit message\" }",
       "example": "Create conventional commit for completed feature",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -57,7 +43,7 @@
         "requirements"
       ],
       "when": "GitHub workflow and project management",
-      "purpose": "No description available",
+      "purpose": "\"Created issue details\" }",
       "example": "Create GitHub issue with proper templates",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -68,10 +54,11 @@
       "category": "Documentation",
       "tags": [
         "docs",
-        "testing"
+        "testing",
+        "planning"
       ],
       "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
+      "purpose": "\"Updated project documentation\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -83,13 +70,31 @@
       "tags": [
         "dev",
         "testing",
-        "implementation"
+        "planning",
+        "implementation",
+        "requirements"
       ],
       "when": "Small changes and quick tasks",
-      "purpose": "No description available",
+      "purpose": "\"Component implementations\" }",
       "example": "Build feature following established plan",
       "riskLevel": "HIGH",
       "requiresHITL": true
+    },
+    {
+      "name": "init-new-app",
+      "path": ".claude/commands/dev/init-new-app.md",
+      "category": "Simple Development",
+      "tags": [
+        "dev",
+        "planning",
+        "implementation",
+        "requirements"
+      ],
+      "when": "Small changes and quick tasks",
+      "purpose": "\"App configuration as defined in NEW_APP_KICKOFF.md\"",
+      "example": "Standard development workflow",
+      "riskLevel": "LOW",
+      "requiresHITL": false
     },
     {
       "name": "plan",
@@ -100,11 +105,10 @@
         "testing",
         "security",
         "planning",
-        "implementation",
-        "requirements"
+        "implementation"
       ],
       "when": "Complex features requiring structured approach",
-      "purpose": "No description available",
+      "purpose": "\"Technical implementation plan\" }",
       "example": "Create technical plan for auth implementation",
       "riskLevel": "MEDIUM",
       "requiresHITL": false
@@ -117,10 +121,11 @@
         "dev",
         "testing",
         "planning",
+        "implementation",
         "requirements"
       ],
       "when": "Small changes and quick tasks",
-      "purpose": "No description available",
+      "purpose": "\"Feature implementation plan\" }",
       "example": "Create technical plan for auth implementation",
       "riskLevel": "MEDIUM",
       "requiresHITL": false
@@ -131,10 +136,11 @@
       "category": "Git Workflow",
       "tags": [
         "git",
-        "testing"
+        "testing",
+        "planning"
       ],
       "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
+      "purpose": "\"Generated PR description\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -146,10 +152,13 @@
       "tags": [
         "dev",
         "testing",
-        "security"
+        "security",
+        "planning",
+        "implementation",
+        "quality"
       ],
       "when": "Small changes and quick tasks",
-      "purpose": "No description available",
+      "purpose": "\"Security analysis report\" }",
       "example": "Add security improvements to API endpoints",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -159,10 +168,11 @@
       "path": ".claude/commands/quality/run-linter.md",
       "category": "Quality Assurance",
       "tags": [
-        "quality"
+        "quality",
+        "planning"
       ],
       "when": "General development tasks",
-      "purpose": "No description available",
+      "purpose": "\"Quality check results\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -178,7 +188,7 @@
         "implementation"
       ],
       "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
+      "purpose": "\"Unit test files\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -190,10 +200,11 @@
       "tags": [
         "review",
         "testing",
-        "planning"
+        "planning",
+        "quality"
       ],
       "when": "Setting up tests and TDD workflows",
-      "purpose": "No description available",
+      "purpose": "\"Quality review findings\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -209,7 +220,7 @@
         "requirements"
       ],
       "when": "Complex features requiring structured approach",
-      "purpose": "No description available",
+      "purpose": "\"Feature specification\" }",
       "example": "Define requirements for user authentication system",
       "riskLevel": "MEDIUM",
       "requiresHITL": false
@@ -219,10 +230,11 @@
       "path": ".claude/commands/git/tag-release.md",
       "category": "Git Workflow",
       "tags": [
-        "git"
+        "git",
+        "planning"
       ],
       "when": "General development tasks",
-      "purpose": "No description available",
+      "purpose": "\"Generated release changelog\" }",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -234,13 +246,11 @@
       "tags": [
         "spec",
         "testing",
-        "security",
         "planning",
-        "implementation",
-        "quality"
+        "implementation"
       ],
       "when": "Complex features requiring structured approach",
-      "purpose": "No description available",
+      "purpose": "\"Implementation task breakdown\" }",
       "example": "Break down auth feature into TDD tasks",
       "riskLevel": "HIGH",
       "requiresHITL": true
@@ -250,10 +260,11 @@
       "path": ".claude/commands/github/update-wiki.md",
       "category": "GitHub Integration",
       "tags": [
-        "github"
+        "github",
+        "planning"
       ],
       "when": "GitHub workflow and project management",
-      "purpose": "No description available",
+      "purpose": "\"Generated wiki content updates\" }",
       "example": "Create GitHub issue with proper templates",
       "riskLevel": "LOW",
       "requiresHITL": false
@@ -264,9 +275,9 @@
       "category": "Git Workflow",
       "tags": [
         "git",
-        "testing"
+        "planning"
       ],
-      "when": "Setting up tests and TDD workflows",
+      "when": "General development tasks",
       "purpose": "No description available",
       "example": "Standard development workflow",
       "riskLevel": "LOW",
