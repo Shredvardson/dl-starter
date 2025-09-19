@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-16T09:31:19.775Z",
+  "generated": "2025-09-19T17:00:33.924Z",
   "packages": {
     "web": {
       "scripts": {
@@ -42,10 +42,11 @@
         "start": "turbo run start --filter=web",
         "lint": "turbo run lint",
         "format": "prettier -w .",
-        "test": "turbo run test",
-        "test:unit": "turbo run test:unit",
-        "test:e2e": "turbo run test:e2e --filter=web",
-        "test:e2e:ci": "playwright test --config playwright.config.ts",
+        "pretest": "tsx scripts/pretest-env-check.ts",
+        "test": "npm run pretest && turbo run test",
+        "test:unit": "npm run pretest && turbo run test:unit",
+        "test:e2e": "npm run pretest && turbo run test:e2e --filter=web",
+        "test:e2e:ci": "tsx scripts/pretest-env-check.ts && playwright test --config playwright.config.ts",
         "typecheck": "turbo run typecheck",
         "debug": "tsx scripts/debug.ts",
         "debug:sentry": "tsx scripts/debug.ts sentry:check",
@@ -66,6 +67,12 @@
         "git:finish": "bash scripts/git-workflow.sh finish-branch",
         "docs:check": "tsx scripts/docs-check.ts",
         "pr:create": "tsx scripts/create-pr.ts",
+        "wiki:generate": "node scripts/generate-wiki.js",
+        "commands:generate": "node scripts/generate-command-index.js",
+        "commands:check": "node scripts/generate-command-index.js && git diff --exit-code docs/commands/index.json || (echo 'Command index out of sync. Run: npm run commands:generate' && exit 1)",
+        "commands:validate-inventory": "node scripts/validate-command-inventory.js",
+        "new-spec": "node scripts/new-spec.mjs",
+        "telemetry:report": "tsx scripts/telemetry-report.ts",
         "changeset": "changeset",
         "changeset:version": "changeset version",
         "changeset:publish": "changeset publish",
@@ -75,6 +82,14 @@
     }
   },
   "commandDocs": {
+    ".claude/commands/README.md": {
+      "scripts": [],
+      "paths": [
+        "docs/llm/risk-policy.json",
+        "docs/constitution.md"
+      ],
+      "anchors": []
+    },
     ".claude/commands/dev/implement.md": {
       "scripts": [],
       "paths": [],
@@ -85,13 +100,16 @@
         "`pnpm typecheck && pnpm build`"
       ],
       "paths": [
-        "`docs/llm/STARTER_MANIFEST.json`",
-        "`docs/llm/NEW_APP_KICKOFF.md`"
+        "docs/llm/STARTER_MANIFEST.json",
+        "docs/llm/NEW_APP_KICKOFF.md"
       ],
       "anchors": []
     },
     ".claude/commands/dev/plan-feature.md": {
-      "scripts": [],
+      "scripts": [
+        "`pnpm test`",
+        "`pnpm typecheck`"
+      ],
       "paths": [],
       "anchors": []
     },
@@ -102,9 +120,7 @@
     },
     ".claude/commands/docs/generate.md": {
       "scripts": [],
-      "paths": [
-        "`\n- Component props and usage\n- Installation/development setup\n- Available scripts in `"
-      ],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/git/commit.md": {
@@ -128,14 +144,26 @@
         "`pnpm git:status`",
         "`pnpm git:cleanup`",
         "`pnpm git:cleanup-force`",
-        "`pnpm git:finish`",
-        "`pnpm git:start fix/login-bug`",
-        "`pnpm pr:create`",
         "`pnpm git:finish`"
       ],
       "paths": [
-        "`scripts/git-workflow.sh`"
+        "scripts/git-workflow.sh"
       ],
+      "anchors": []
+    },
+    ".claude/commands/github/capture-learning.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/github/create-issue.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/github/update-wiki.md": {
+      "scripts": [],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/quality/run-linter.md": {
@@ -144,6 +172,23 @@
       "anchors": []
     },
     ".claude/commands/review/self-critique.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/spec/plan.md": {
+      "scripts": [],
+      "paths": [
+        "docs/constitution.md"
+      ],
+      "anchors": []
+    },
+    ".claude/commands/spec/specify.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/spec/tasks.md": {
       "scripts": [],
       "paths": [],
       "anchors": []

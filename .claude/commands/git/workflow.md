@@ -1,24 +1,90 @@
-# Git Workflow
+---
+# Machine-readable metadata (parsed into docs/commands/index.json)
+name: "/git:workflow"
+version: "1.0.0"
+lane: "lightweight"
+tags: ["git", "workflow", "branch-management"]
+when_to_use: >
+  Manage git branch lifecycle using consolidated workflow operations.
 
-Consolidated git operations using `scripts/git-workflow.sh`:
+arguments:
+  - name: operation
+    type: string
+    required: false
+    example: "start"
+  - name: branchName
+    type: string
+    required: false
+    example: "fix/login-bug"
 
-## Quick Commands (via npm)
-- `pnpm git:start <branch-name>` - Start new feature branch
-- `pnpm git:status` - Comprehensive git status  
-- `pnpm git:cleanup` - Preview branch cleanup (dry-run)
-- `pnpm git:cleanup-force` - Execute branch cleanup
-- `pnpm git:finish` - Clean current branch after merge
+inputs: []
+outputs:
+  - type: "artifact-links"
 
-## Branch Lifecycle
-1. **Start**: `pnpm git:start fix/login-bug`
-2. **Work**: Make changes, commit normally
-3. **PR**: `pnpm pr:create` (auto-fills verification)
-4. **Finish**: `pnpm git:finish` (after merge)
+riskLevel: "MEDIUM"
+requiresHITL: true
+riskPolicyRef: "docs/llm/risk-policy.json#gitOperations"
 
-## Safety Features
-- Prevents cleanup of main/develop/release
-- Checks for open PRs before remote deletion
-- Fetches latest before operations
-- Dry-run preview for cleanup operations
+allowed-tools:
+  - "Bash(pnpm git:*)"
+  - "Bash(scripts/git-workflow.sh:*)"
 
-Replaces old `simple-git.sh` with better integration.
+preconditions:
+  - "Git repository is initialized"
+  - "Working directory is clean"
+postconditions:
+  - "Git operations completed successfully"
+  - "Branch state is consistent"
+
+artifacts:
+  produces: []
+  updates: []
+
+permissions:
+  tools:
+    - name: "git"
+      ops: ["branch", "checkout", "merge", "push", "pull"]
+    - name: "bash"
+      ops: ["execute"]
+
+timeouts:
+  softSeconds: 120
+  hardSeconds: 300
+
+idempotent: true
+dryRun: true
+estimatedRuntimeSec: 90
+costHints: "Low I/O; git operations"
+
+references:
+  - "docs/constitution.md#git-workflow"
+  - "CLAUDE.md#branch-strategy"
+  - "scripts/git-workflow.sh"
+---
+
+**Slash Command:** `/git:workflow`
+
+**Goal:**  
+Manage git branch lifecycle using consolidated workflow operations.
+
+**Prompt:**  
+1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+2) If `requiresHITL` true, ask for human confirmation citing `riskPolicyRef`.  
+3) Execute consolidated git operations using `scripts/git-workflow.sh`:
+   - `pnpm git:start <branch-name>` - Start new feature branch
+   - `pnpm git:status` - Comprehensive git status
+   - `pnpm git:cleanup` - Preview branch cleanup (dry-run)
+   - `pnpm git:cleanup-force` - Execute branch cleanup
+   - `pnpm git:finish` - Clean current branch after merge
+4) Follow branch lifecycle: Start → Work → PR → Finish
+5) Leverage safety features: protected branches, PR checks, dry-run previews.
+6) Produce workflow **artifacts** and **link** results in related Issue/PR.
+7) Emit **Result**: operation completed, branch status, and next suggested command.
+
+**Examples:**  
+- `/git:workflow start fix/login-bug` → starts new feature branch
+- `/git:workflow --dry-run` → show planned git operations only.
+
+**Failure & Recovery:**  
+- If uncommitted changes exist → suggest stashing or committing first.
+- If branch conflicts → provide resolution guidance.

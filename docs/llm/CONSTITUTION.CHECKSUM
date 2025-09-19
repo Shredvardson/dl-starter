@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-18T12:33:32.257Z",
+  "generated": "2025-09-19T17:00:33.908Z",
   "version": "0.1.0",
   "checksums": {
     "CLAUDE.md": "fd084d1be74e9550",
@@ -13,7 +13,7 @@
     "packages/ui/styles/tokens.css": "1245fb5ec22d4cfe",
     "apps/web/app.config.ts": "73fba51f5be58666",
     "docs/constitution.md": "d4c66ed0379e10b8",
-    "docs/commands/index.json": "f6a6e21c7601a35e",
+    "docs/commands/index.json": "e205e28d61918574",
     "docs/llm/risk-policy.json": "2a2e2e3df6da4502"
   }
 }
