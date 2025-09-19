@@ -6,10 +6,30 @@ const STORAGE_KEY = 'dl-analytics';
 const MAX_EVENTS = 1000; // Prevent storage bloat
 
 /**
+ * Generate cryptographically secure random string
+ */
+function secureRandomString(length = 12): string {
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    // Browser environment with crypto API
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const array = new Uint8Array(length);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, byte => chars[byte % chars.length]).join('');
+  } else if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    // Node.js environment or browsers with randomUUID
+    return crypto.randomUUID().replace(/-/g, '').slice(0, length);
+  } else {
+    // Fallback for environments without crypto support
+    console.warn('No secure crypto available, falling back to timestamp-based ID');
+    return `${Date.now()}${performance?.now() || 0}`.replace('.', '').slice(0, length);
+  }
+}
+
+/**
  * Generate unique session ID
  */
 export function generateSessionId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${Date.now()}-${secureRandomString(9)}`;
 }
 
 /**
@@ -21,7 +41,7 @@ export function createEvent(
   metadata?: Record<string, string | number>
 ): AnalyticsEvent {
   return {
-    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `${Date.now()}-${secureRandomString(9)}`,
     type,
     path,
     timestamp: Date.now(),
@@ -265,7 +285,7 @@ export function reportMetricsToTelemetry(metrics: AnalyticsMetrics): void {
 function createEmptyAnalyticsData(): AnalyticsData {
   return {
     events: [],
-    sessionId: generateSessionId(),
+    sessionId: secureRandomString(16),
     createdAt: Date.now(),
     lastUpdated: Date.now(),
   };
