@@ -1,72 +1,84 @@
+---
+# Machine-readable metadata (parsed into docs/commands/index.json)
+name: "/plan"
+version: "1.0.0"
+lane: "spec"
+tags: ["spec-kit", "planning", "architecture"]
+when_to_use: >
+  Create technical implementation plan within constitutional constraints.
+
+arguments: []
+
+inputs: []
+outputs:
+  - type: "artifact-links"
+
+riskLevel: "MEDIUM"
+requiresHITL: true
+riskPolicyRef: "docs/llm/risk-policy.json#planningOperations"
+
+allowed-tools:
+  - "Read(*)"
+  - "Write(*)"
+  - "Bash(gh issue comment:*)"
+
+preconditions:
+  - "Feature specification exists from /specify command"
+  - "Constitutional constraints are understood"
+postconditions:
+  - "Technical implementation plan created"
+  - "GitHub issue updated with technical context"
+
+artifacts:
+  produces:
+    - { path: "plans/feature-[number]-[name].md", purpose: "Technical implementation plan" }
+  updates: []
+
+permissions:
+  tools:
+    - name: "filesystem"
+      ops: ["read", "write"]
+    - name: "github"
+      ops: ["comment"]
+
+timeouts:
+  softSeconds: 600
+  hardSeconds: 1200
+
+idempotent: true
+dryRun: true
+estimatedRuntimeSec: 480
+costHints: "Medium I/O; architectural planning intensive"
+
+references:
+  - "docs/constitution.md#architectural-constraints"
+  - "CLAUDE.md#spec-driven-workflow"
+---
+
 **Slash Command:** `/plan`
-**Goal:** Create technical implementation plan within constitutional constraints.
-**Reference:** Must align with `docs/constitution.md` and existing specification.
 
-**Prompt:**
-Create a detailed technical plan for the specified feature.
+**Goal:**  
+Create technical implementation plan within constitutional constraints.
 
-Pre-requisites:
-- Must have existing specification from `/specify` command
-- Reference the feature spec in `/specs/feature-[number]-[name].md`
-- Follow all architectural decisions in `docs/constitution.md`
+**Prompt:**  
+1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+2) If `requiresHITL` true, ask for human confirmation citing `riskPolicyRef`.  
+3) Create detailed technical plan for the specified feature with:
+   - Architecture Decision (Next.js/TypeScript/Tailwind alignment)
+   - File Changes Required (exact `src/**` paths)
+   - Implementation Strategy (components, state, APIs)
+   - Testing Strategy (TDD order: contracts, integration, e2e, unit)
+   - Security Considerations
+   - Dependencies and justification
+   - Risks & Mitigation
+4) Must reference existing specification from `/specify` command.
+5) Save plan to `/plans/` folder and update GitHub issue.
+6) Emit **Result**: plan created, technical context added, ready for `/tasks` command.
 
-Technical Constraints (from Constitution):
-- Next.js 15 with TypeScript strict mode
-- Tailwind CSS with design tokens only
-- Environment config via `@/lib/env.ts`
-- TDD approach: tests before implementation
-- Security-first patterns
-- Minimal dependencies (justify additions)
+**Examples:**  
+- `/plan` → creates technical implementation plan
+- `/plan --dry-run` → show planned technical approach only.
 
-Format the output as:
-```
-# Technical Plan: [Feature Name]
-
-## Architecture Decision  
-How does this fit within our Next.js/TypeScript/Tailwind stack?
-
-## File Changes Required
-- Files to modify: `src/**` paths only
-- New files needed: specify exact paths
-- Database changes: schema updates if needed
-
-## Implementation Strategy
-- Component structure and patterns
-- State management approach  
-- API design (if needed)
-- Integration points with existing code
-
-## Testing Strategy
-Following TDD order from constitution:
-1. Contract tests: Define interfaces
-2. Integration tests: Component interactions  
-3. E2E tests: User workflows
-4. Unit tests: Business logic
-
-## Security Considerations
-- Input validation requirements
-- Authentication/authorization needs
-- Data protection patterns
-- Rate limiting considerations
-
-## Dependencies
-- Existing packages to leverage
-- New packages needed (with justification)
-- Version compatibility checks
-
-## Risks & Mitigation
-- Technical risks and solutions
-- Breaking change potential
-- Performance implications
-
-## Next Steps
-- Save this plan to `/plans/feature-[number]-[name].md`  
-- Use `/tasks` to create actionable breakdown
-- Update GitHub issue with technical context
-```
-
-After generating the plan:
-1. Link to corresponding specification
-2. Save to `/plans/` folder
-3. Update GitHub issue with technical details
-4. Ready for `/tasks` command for implementation breakdown
+**Failure & Recovery:**  
+- If no specification exists → suggest running `/specify` first.
+- If constitutional constraints unclear → reference `docs/constitution.md`.

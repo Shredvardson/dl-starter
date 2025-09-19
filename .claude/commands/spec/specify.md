@@ -1,46 +1,83 @@
+---
+# Machine-readable metadata (parsed into docs/commands/index.json)
+name: "/specify"
+version: "1.0.0"
+lane: "spec"
+tags: ["spec-kit", "requirements", "planning"]
+when_to_use: >
+  Define pure requirements - what and why only, no technical details.
+
+arguments: []
+
+inputs: []
+outputs:
+  - type: "artifact-links"
+
+riskLevel: "LOW"
+requiresHITL: false
+riskPolicyRef: "docs/llm/risk-policy.json#commandDefaults"
+
+allowed-tools:
+  - "Read(*)"
+  - "Write(*)"
+  - "Bash(gh issue create:*)"
+
+preconditions:
+  - "Feature requirements are understood"
+  - "User needs are clear"
+postconditions:
+  - "Pure requirements specification created"
+  - "GitHub issue created and linked"
+
+artifacts:
+  produces:
+    - { path: "specs/feature-[number]-[name].md", purpose: "Feature specification" }
+  updates: []
+
+permissions:
+  tools:
+    - name: "filesystem"
+      ops: ["read", "write"]
+    - name: "github"
+      ops: ["create"]
+
+timeouts:
+  softSeconds: 300
+  hardSeconds: 600
+
+idempotent: true
+dryRun: true
+estimatedRuntimeSec: 240
+costHints: "Low I/O; requirements analysis"
+
+references:
+  - "docs/constitution.md#specification-principles"
+  - "CLAUDE.md#spec-driven-workflow"
+---
+
 **Slash Command:** `/specify`
-**Goal:** Define pure requirements - what and why only, no technical details.
-**Reference:** Must follow `docs/constitution.md` principles.
 
-**Prompt:**
-Create a feature specification focused ONLY on what users need and why.
+**Goal:**  
+Define pure requirements - what and why only, no technical details.
 
-Constraints:
-- NO tech stack, APIs, or implementation details
-- NO "how" - only "what" and "why"  
-- Mark ALL ambiguities with [NEEDS_CLARIFICATION]
-- Reference existing features and user workflows
-- Focus on user value and business requirements
+**Prompt:**  
+1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+2) Create a feature specification focused ONLY on what users need and why.
+3) Constraints:
+   - NO tech stack, APIs, or implementation details
+   - NO "how" - only "what" and "why"
+   - Mark ALL ambiguities with [NEEDS_CLARIFICATION]
+   - Reference existing features and user workflows
+   - Focus on user value and business requirements
+4) Format output with User Need, Functional Requirements, User Experience, Success Criteria, and Clarifications Needed.
+5) Auto-number the feature sequentially and save to `/specs/` folder.
+6) Create GitHub issue linking to this specification.
+7) Emit **Result**: specification created, issue URL, ready for `/plan` command.
 
-Format the output as:
-```
-# Feature Specification: [Feature Name]
+**Examples:**  
+- `/specify` → creates feature specification and GitHub issue
+- `/specify --dry-run` → show planned specification structure only.
 
-## User Need
-What problem does this solve? Why is it important?
-
-## Functional Requirements  
-What should the feature do? (user perspective only)
-
-## User Experience
-How should users interact with this feature?
-
-## Success Criteria
-How will we know this feature works well?
-
-## Clarifications Needed
-- [NEEDS_CLARIFICATION] Any ambiguous requirements
-- [NEEDS_CLARIFICATION] Missing user scenarios  
-- [NEEDS_CLARIFICATION] Unclear success metrics
-
-## Next Steps
-- Save this spec to `/specs/feature-[number]-[name].md`
-- Use `/plan` to create technical implementation
-- Create GitHub issue with "ai-collaboration" template
-```
-
-After generating the spec:
-1. Auto-number the feature sequentially
-2. Save to `/specs/` folder  
-3. Create GitHub issue linking to this specification
-4. Ready for `/plan` command with technical implementation
+**Failure & Recovery:**  
+- If requirements unclear → ask for clarification on user needs and value.
+- If scope too large → suggest breaking into smaller features.
