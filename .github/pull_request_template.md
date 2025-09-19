@@ -36,5 +36,8 @@ Paste real outputs or "OK":
 - [ ] No hardcoded hex colors (tokenized Tailwind only)
 - [ ] Updated docs and `llm/context-map.json` if scripts/paths changed
 
+## Weekly Telemetry Decision Rule
+- [ ] **Analytics/Telemetry Changes:** If this PR modifies analytics, telemetry, or monitoring code, assign @claude (or team lead) as reviewer for weekly telemetry oversight
+
 ## Breaking changes / Migration
 _None_ (or describe + steps)
