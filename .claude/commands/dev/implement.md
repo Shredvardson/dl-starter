@@ -13,7 +13,7 @@ inputs: []
 outputs:
   - type: "code-change"
 
-riskLevel: "MEDIUM"
+riskLevel: "HIGH"
 requiresHITL: true
 riskPolicyRef: "docs/llm/risk-policy.json#commandDefaults"
 
