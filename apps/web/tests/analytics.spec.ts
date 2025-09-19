@@ -124,9 +124,9 @@ test.describe('Analytics Tracking', () => {
     
     const pageViewEvents = analyticsData.events.filter((e: { type: string; path: string }) => e.type === 'page_view');
     expect(pageViewEvents).toHaveLength(3);
-    expect(pageViewEvents[0].path).toBe('/dashboard');
-    expect(pageViewEvents[1].path).toBe('/dashboard/analytics');
-    expect(pageViewEvents[2].path).toBe('/dashboard');
+    expect(pageViewEvents[0]?.path).toBe('/dashboard');
+    expect(pageViewEvents[1]?.path).toBe('/dashboard/analytics');
+    expect(pageViewEvents[2]?.path).toBe('/dashboard');
   });
 
   test('should track click events on components', async ({ page }) => {
@@ -143,7 +143,7 @@ test.describe('Analytics Tracking', () => {
 
     const clickEvents = analyticsData.events.filter((e: { type: string; metadata: { component: string } }) => e.type === 'click');
     expect(clickEvents.length).toBeGreaterThan(0);
-    expect(clickEvents[0].metadata.component).toBe('header-help');
+    expect(clickEvents[0]?.metadata.component).toBe('header-help');
   });
 
   test('should not track events when analytics is disabled', async ({ page }) => {

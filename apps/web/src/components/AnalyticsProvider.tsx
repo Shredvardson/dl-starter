@@ -30,7 +30,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
   
   // Allow test environment to override via window object
   const enabled = typeof window !== 'undefined' && window.__ENV_ANALYTICS_ENABLED__ !== undefined
-    ? window.__ENV_ANALYTICS_ENABLED__
+    ? Boolean(window.__ENV_ANALYTICS_ENABLED__)
     : env.NEXT_PUBLIC_ENABLE_ANALYTICS;
 
   // Start session on mount
