@@ -29,6 +29,7 @@ Lightweight, LLM-friendly Next.js starter template with Turborepo.
 - `packages/types/` - Shared TypeScript types
 - `packages/ai/` - AI utilities and prompts
 - `packages/config/` - Shared ESLint/Prettier/TypeScript configs
+- `examples/` - Working examples of development workflows
 
 ## Docs for LLMs
 
@@ -49,6 +50,13 @@ Lightweight, LLM-friendly Next.js starter template with Turborepo.
 - **Auth**: See `docs/recipes/auth.md`
 - **Database**: See `docs/recipes/db.md`
 - **Payments**: See `docs/recipes/stripe.md`
+
+## Example Workflows
+
+- **`examples/analytics/`** - Complete spec-driven development example with analytics dashboard feature
+  - Includes specification, technical plan, and task breakdown artifacts
+  - Demonstrates feature flag architecture, React context patterns, and TDD approach
+  - **Note**: Feature is disabled by default in starter template (example only)
 
 ## Scripts
 

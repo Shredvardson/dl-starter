@@ -128,6 +128,7 @@ jobs:
         echo "🤖 Simulating Claude AI Review..."
         
         # Check path restrictions (using environment variable to prevent injection)
+        # Allow: apps/, packages/, docs/, examples/ - Block: .github/workflows/, .env*, scripts/release/
         if echo "$COMMENT_BODY" | grep -Ei '\.github/workflows/|(^|[^A-Za-z0-9_])\.env([^A-Za-z0-9_]|$)|(^|[[:space:]])scripts/release(/|\.ya?ml|[[:space:]]|$)'; then
           echo "❌ Request violates path restrictions"
           exit 1

@@ -1,8 +1,11 @@
-# Implementation Tasks: User Dashboard Analytics
+# 🚧 EXAMPLE ONLY: Implementation Tasks: User Dashboard Analytics
+
+> **⚠️ TEMPLATE EXAMPLE**: This task breakdown demonstrates the spec-driven development workflow.  
+> **Status**: Moved to examples for reference. Analytics feature is disabled by default in starter template.
 
 **Created:** 2025-09-18
-**Plan:** [plans/20250918-user-dashboard-analytics.md](../plans/20250918-user-dashboard-analytics.md)
-**Status:** Completed
+**Plan:** [examples/analytics/plans/20250918-user-dashboard-analytics.md](../examples/analytics/plans/20250918-user-dashboard-analytics.md)
+**Status:** Example Implementation
 
 ## Task Breakdown
 

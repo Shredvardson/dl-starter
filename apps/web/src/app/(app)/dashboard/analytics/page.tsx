@@ -1,156 +1,41 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { AnalyticsMetrics, ChartData } from '@shared/types';
-import { getAnalyticsData, calculateMetrics, reportMetricsToTelemetry } from '@/lib/analytics';
-import { AnalyticsChart } from '@/components/AnalyticsChart';
-import { env } from '@/lib/env';
-import '@/types/test-env';
-
-export default function AnalyticsPage() {
-  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Allow test environment to override via window object
-  const enabled = typeof window !== 'undefined' && window.__ENV_ANALYTICS_ENABLED__ !== undefined
-    ? window.__ENV_ANALYTICS_ENABLED__
-    : env.NEXT_PUBLIC_ENABLE_ANALYTICS;
-
-  useEffect(() => {
-    if (enabled) {
-      // Allow test environment to override analytics data
-      const mockData = typeof window !== 'undefined' ? window.__MOCK_ANALYTICS_DATA__ : null;
-      const data = mockData || getAnalyticsData();
-      const calculatedMetrics = calculateMetrics(data);
-      setMetrics(calculatedMetrics);
-
-      // Report metrics to telemetry when analytics dashboard is viewed
-      // Only if we have meaningful data (more than just the current page view)
-      if (calculatedMetrics.totalPageViews > 1 || calculatedMetrics.totalClicks > 0) {
-        reportMetricsToTelemetry(calculatedMetrics);
-      }
-    }
-    setLoading(false);
-  }, [enabled]);
-
-  if (loading) {
-    return (
-      <div className="min-h-dvh p-8 bg-[hsl(var(--bg))]">
-        <h1 className="text-2xl font-semibold text-[hsl(var(--text))] mb-2">Analytics</h1>
-        <p className="text-[hsl(var(--text-muted))]">Loading analytics data...</p>
-      </div>
-    );
-  }
-
-  if (!enabled) {
-    return (
-      <div className="min-h-dvh p-8 bg-[hsl(var(--bg))]">
-        <h1 className="text-2xl font-semibold text-[hsl(var(--text))] mb-2">Analytics</h1>
-        <div className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-6">
-          <p className="text-[hsl(var(--text-muted))]">
-            Analytics is currently disabled. Enable it by setting{' '}
-            <code className="bg-[hsl(var(--muted))] px-2 py-1 rounded text-sm">
-              NEXT_PUBLIC_ENABLE_ANALYTICS=true
-            </code>{' '}
-            in your environment variables.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const hasData = metrics && (metrics.totalPageViews > 0 || metrics.totalClicks > 0);
-
-  const pageViewsChartData: ChartData = {
-    title: 'Page Views',
-    type: 'bar',
-    data: metrics?.topPages.map((page: { path: string; views: number }) => ({
-      label: page.path,
-      value: page.views,
-    })) || [],
-  };
-
-  const clicksChartData: ChartData = {
-    title: 'Clicks by Component',
-    type: 'bar', 
-    data: metrics?.clicksByComponent.map((item: { component: string; clicks: number }) => ({
-      label: item.component,
-      value: item.clicks,
-    })) || [],
-  };
-
+export default function AnalyticsStubPage() {
   return (
     <div className="min-h-dvh p-8 bg-[hsl(var(--bg))]">
       <h1 className="text-2xl font-semibold text-[hsl(var(--text))] mb-6">Analytics</h1>
       
-      <div data-testid="analytics-dashboard">
-        {!hasData ? (
-          <div className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-8 text-center">
-            <p className="text-[hsl(var(--text-muted))] text-lg mb-2">No analytics data yet</p>
-            <p className="text-[hsl(var(--text-muted))] text-sm">
-              Start navigating the dashboard to collect usage metrics.
+      <div className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-8">
+        <div className="text-center">
+          <h2 className="text-lg font-medium text-[hsl(var(--text))] mb-4">
+            📊 Analytics Example (Template)
+          </h2>
+          <p className="text-[hsl(var(--text-muted))] mb-6">
+            This analytics module is disabled by default in the starter template.
+            It serves as a working example of the spec-driven development workflow.
+          </p>
+          
+          <div className="bg-[hsl(var(--muted))] rounded-[var(--radius)] p-4 mb-6">
+            <p className="text-sm text-[hsl(var(--text-muted))]">
+              <strong>To enable:</strong> Set <code>NEXT_PUBLIC_ENABLE_ANALYTICS=true</code> in your <code>.env.local</code>
             </p>
           </div>
-        ) : (
-          <>
-            {/* Metrics Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <MetricCard
-                title="Page Views"
-                value={metrics.totalPageViews}
-                testId="page-views-metric"
-              />
-              <MetricCard
-                title="Unique Pages"
-                value={metrics.uniquePages}
-                testId="unique-pages-metric"
-              />
-              <MetricCard
-                title="Total Clicks"
-                value={metrics.totalClicks}
-                testId="total-clicks-metric"
-              />
-              <MetricCard
-                title="Avg Session (ms)"
-                value={Math.round(metrics.averageSessionDuration)}
-                testId="session-duration-metric"
-              />
-            </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-6">
-                <AnalyticsChart data={pageViewsChartData} testId="page-views-chart" />
-              </div>
-              <div className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-6">
-                <AnalyticsChart data={clicksChartData} testId="clicks-chart" />
-              </div>
-            </div>
-          </>
-        )}
+          <div className="text-left bg-[hsl(var(--bg))] border border-[hsl(var(--border))] rounded-[var(--radius)] p-4">
+            <h3 className="font-medium text-[hsl(var(--text))] mb-2">Example includes:</h3>
+            <ul className="text-sm text-[hsl(var(--text-muted))] space-y-1">
+              <li>• Complete React analytics provider and hooks</li>
+              <li>• SVG-based chart components</li>
+              <li>• Local storage data persistence</li>
+              <li>• Sentry telemetry integration</li>
+              <li>• Comprehensive e2e test suite</li>
+              <li>• Feature flag architecture</li>
+            </ul>
+          </div>
+
+          <p className="text-xs text-[hsl(var(--text-muted))] mt-6">
+            See <code>examples/analytics/</code> for the full implementation
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
-
-interface MetricCardProps {
-  title: string;
-  value: number;
-  testId: string;
-}
-
-function MetricCard({ title, value, testId }: MetricCardProps) {
-  return (
-    <div
-      className="bg-[hsl(var(--surface))] border border-[hsl(var(--border))] rounded-[var(--radius-lg)] p-4"
-      data-testid={testId}
-    >
-      <h3 className="text-sm font-medium text-[hsl(var(--text-muted))] mb-1">
-        {title}
-      </h3>
-      <p className="text-2xl font-semibold text-[hsl(var(--text))]">
-        {value.toLocaleString()}
-      </p>
     </div>
   );
 }

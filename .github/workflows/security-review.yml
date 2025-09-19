@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/**'
       - 'packages/**'
+      - 'examples/**'
       - '!**/*.md'
       - '!**/*.json'
 
