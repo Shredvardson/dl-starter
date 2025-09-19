@@ -10,7 +10,7 @@ export function Header() {
           </div>
           <nav className="flex items-center space-x-4">
             <a
-              href="https://github.com/Shredvardson/dl-starter/wiki/Home"
+              href="https://github.com/Shredvardson/dl-starter/wiki/Two-Lanes-Quick-Start"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))] transition-colors"

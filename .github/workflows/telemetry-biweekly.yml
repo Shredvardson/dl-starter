@@ -1,0 +1,105 @@
+name: Bi-Weekly Telemetry Report
+
+# Runs on 1st and 15th of each month at 08:00 UTC
+# To change cadence:
+# - Weekly: "0 8 * * 1" (every Monday)
+# - Monthly: "0 8 1 * *" (1st of month only)
+on:
+  schedule:
+    - cron: "0 8 1,15 * *"  # 1st and 15th at 08:00 UTC
+  workflow_dispatch:  # Manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        disable-sudo: true
+        egress-policy: block
+        allowed-endpoints: >
+          api.github.com:443
+          github.com:443
+          uploads.github.com:443
+          objects.githubusercontent.com:443
+          pipelines.actions.githubusercontent.com:443
+          raw.githubusercontent.com:443
+          codeload.github.com:443
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for git log analysis
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Generate telemetry report
+      run: |
+        echo "🔍 Generating bi-weekly telemetry report..."
+        node scripts/telemetry/generate-biweekly-report.mjs
+        
+        echo "📊 Report contents:"
+        cat docs/telemetry/biweekly.md
+
+    - name: Extract metrics for PR body
+      id: metrics
+      run: |
+        # Extract metrics from generated report for PR body
+        LIGHTWEIGHT_PERCENT=$(grep "Lane usage:" docs/telemetry/biweekly.md | sed -n 's/.*Lightweight: \([^·]*\).*/\1/p' | xargs)
+        SPEC_DRIVEN_PERCENT=$(grep "Lane usage:" docs/telemetry/biweekly.md | sed -n 's/.*Spec-driven: \([^·]*\).*/\1/p' | xargs)
+        MEDIAN_TIME=$(grep "Median time-to-PR:" docs/telemetry/biweekly.md | sed -n 's/.*Median time-to-PR: \([^·]*\).*/\1/p' | xargs)
+        FAILED_CHECKS=$(grep "Failed checks:" docs/telemetry/biweekly.md | sed -n 's/.*Failed checks: \([^·]*\).*/\1/p' | xargs)
+        ROUTING_DRIFT=$(grep "Docs/Routing drift:" docs/telemetry/biweekly.md | sed -n 's/.*Docs\/Routing drift: \([^·]*\).*/\1/p' | xargs)
+        SPEC_GUARD_TRIPS=$(grep "Spec guard trips:" docs/telemetry/biweekly.md | sed -n 's/.*Spec guard trips: \([^·]*\).*/\1/p' | xargs)
+        
+        echo "lightweight_percent=$LIGHTWEIGHT_PERCENT" >> $GITHUB_OUTPUT
+        echo "spec_driven_percent=$SPEC_DRIVEN_PERCENT" >> $GITHUB_OUTPUT
+        echo "median_time=$MEDIAN_TIME" >> $GITHUB_OUTPUT
+        echo "failed_checks=$FAILED_CHECKS" >> $GITHUB_OUTPUT
+        echo "routing_drift=$ROUTING_DRIFT" >> $GITHUB_OUTPUT
+        echo "spec_guard_trips=$SPEC_GUARD_TRIPS" >> $GITHUB_OUTPUT
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: chore/telemetry-biweekly
+        title: "chore(telemetry): bi-weekly report & decision rule review"
+        commit-message: "chore(telemetry): bi-weekly report"
+        reviewers: Shredvardson
+        labels: |
+          telemetry
+          automation
+        body: |
+          ## Bi-Weekly Telemetry (Last 14 days)
+
+          **Lane usage:** Lightweight: ${{ steps.metrics.outputs.lightweight_percent }} · Spec-driven: ${{ steps.metrics.outputs.spec_driven_percent }}  
+          **Median time-to-PR:** ${{ steps.metrics.outputs.median_time }}  
+          **Failed checks:** ${{ steps.metrics.outputs.failed_checks }}  
+          **Docs/Routing drift:** ${{ steps.metrics.outputs.routing_drift }}  
+          **Spec guard trips:** ${{ steps.metrics.outputs.spec_guard_trips }}
+
+          ## Founder Cheatsheet (what to look for)
+          - If Lightweight < 60% → you may be over-documenting. Prefer Lightweight for small changes.
+          - If Median time-to-PR ↑ → trim steps/tests for small PRs; revisit Decision Rules.
+          - If Failed checks ↑ → fix flaky tests/checks; keep PRs smaller.
+          - If Docs/Routing drift > 0 → fix routing/links now (AIs will route wrong).
+          - If Spec guard trips > 0 → relabel PR or move artifacts out; keep Lightweight lane clean.
+
+          ## Oversight
+          - [ ] Decision Rule updated (if needed)
+          - [ ] Action needed (opened an Issue)
+
+          _Report file: docs/telemetry/biweekly.md_
+        delete-branch: true

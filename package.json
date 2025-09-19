@@ -42,6 +42,7 @@
     "commands:check": "node scripts/generate-command-index.js && git diff --exit-code docs/commands/index.json || (echo 'Command index out of sync. Run: npm run commands:generate' && exit 1)",
     "new-spec": "node scripts/new-spec.mjs",
     "telemetry:report": "tsx scripts/telemetry-report.ts",
+    "telemetry:biweekly": "node scripts/telemetry/generate-biweekly-report.mjs",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
