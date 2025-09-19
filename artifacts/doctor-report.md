@@ -1,12 +1,12 @@
 # 🏥 Starter Doctor Report
 
-**Generated:** 2025-09-19T16:54:54.849Z
+**Generated:** 2025-09-19T17:00:33.923Z
 **Status:** ❌ FAILED
 
 ## 📊 Summary
 
-- ✅ **Passed:** 10
-- ⚠️ **Warnings:** 1
+- ✅ **Passed:** 9
+- ⚠️ **Warnings:** 2
 - ❌ **Failed:** 1
 
 ## 📋 Issues by Category
@@ -26,6 +26,14 @@
 
 ❌ **Constitution checksum is stale - binding sources have changed**
    💡 *Fix: Checksum has been updated. Review changes and commit the updated CONSTITUTION.CHECKSUM*
+
+### ⚠️ Commands in CLAUDE.md
+
+- Failures: 0
+- Warnings: 1
+
+⚠️ **18/19 commands referenced in CLAUDE.md**
+   💡 *Fix: Add missing command references to CLAUDE.md*
 
 ## 🔧 How to Reproduce Locally
 

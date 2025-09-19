@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-19T16:54:54.850Z",
+  "generated": "2025-09-19T17:00:33.924Z",
   "packages": {
     "web": {
       "scripts": {
@@ -82,6 +82,14 @@
     }
   },
   "commandDocs": {
+    ".claude/commands/README.md": {
+      "scripts": [],
+      "paths": [
+        "docs/llm/risk-policy.json",
+        "docs/constitution.md"
+      ],
+      "anchors": []
+    },
     ".claude/commands/dev/implement.md": {
       "scripts": [],
       "paths": [],
