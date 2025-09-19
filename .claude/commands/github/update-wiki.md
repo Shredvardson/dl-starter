@@ -1,3 +1,21 @@
+---
+slash-command: "/github:update-wiki"
+lane: "lightweight"
+purpose: "Sync current project state to wiki pages for GPT-5 context"
+when: "After major feature completion or architectural changes"
+example: "Update wiki after implementing user authentication system"
+risks:
+  - "None - read-only wiki documentation"
+riskLevel: "LOW"
+requiresHITL: false
+artifacts: ["Wiki content updates", "Manual copy-paste instructions"]
+allowed-tools:
+  - "Read(**/*.md)"
+  - "Glob(docs/**)"
+  - "Grep(pattern:# |## |### )"
+anchor: "docs/llm/risk-policy.json#commandDefaults"
+---
+
 **Slash Command:** `/github:update-wiki`
 **Goal:** Sync current project state to wiki pages for GPT-5 context.
 **Prompt:**

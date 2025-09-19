@@ -5,6 +5,25 @@
   "version": "1.0.0",
   "lastUpdated": "2025-09-18",
   
+  "commandDefaults": {
+    "description": "Default policies for command risk levels and human oversight requirements",
+    "LOW": {
+      "requiresHITL": false,
+      "rationale": "Low-risk commands like documentation generation, read-only operations, and basic file manipulation can run with post-hoc human review",
+      "examples": ["wiki updates", "documentation generation", "file reading", "status checks"]
+    },
+    "MEDIUM": {
+      "requiresHITL": false,
+      "rationale": "Medium-risk commands benefit from monitoring but don't require pre-approval due to safety mechanisms and rollback capabilities",
+      "examples": ["feature planning", "test scaffolding", "code analysis"]
+    },
+    "HIGH": {
+      "requiresHITL": true,
+      "rationale": "High-risk commands affecting critical systems require human oversight before execution",
+      "examples": ["implementation changes", "database modifications", "deployment operations"]
+    }
+  },
+
   "riskFramework": {
     "riskLevels": {
       "LOW": {
