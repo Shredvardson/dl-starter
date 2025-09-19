@@ -21,8 +21,9 @@ allowed-tools:
   - "Read(*)"
   - "Edit(*)"
   - "MultiEdit(*)"
-  - "Glob(**/*.ts)"
-  - "Grep(pattern:*)"
+  - "Glob(src/**/*.ts)"
+  - "Glob(docs/**/*.md)"
+  - "Grep(pattern:@param|@returns|@throws)"
 
 preconditions:
   - "Code and tests exist to document"
@@ -62,7 +63,7 @@ references:
 Update documentation from code and tests when docs are outdated.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Scan codebase and update documentation focusing on:
    - API routes in `src/app/api/`
    - Component props and usage

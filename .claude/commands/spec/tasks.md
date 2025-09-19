@@ -65,7 +65,7 @@ references:
 Break down technical plan into actionable implementation tasks with TDD focus.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**spec**) against `CLAUDE.md` decision rules.  
 2) If `requiresHITL` true, ask for human confirmation citing `riskPolicyRef`.  
 3) Create actionable task breakdown following constitutional order:
    - Phase 1: Contracts & Interfaces

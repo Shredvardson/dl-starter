@@ -70,7 +70,7 @@ references:
 Create semantic version from conventional commits when ready to release.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) If `requiresHITL` true, ask for human confirmation citing `riskPolicyRef`.  
 3) Create semantic version following these steps:
    - Analyze commit history since last tag

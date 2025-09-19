@@ -18,8 +18,9 @@ requiresHITL: true
 riskPolicyRef: "docs/llm/risk-policy.json#commandDefaults"
 
 allowed-tools:
-  - "Read(*)"
-  - "Write(*)"
+  - "Read(*.md)"
+  - "Read(wiki/**/*)"
+  - "Write(wiki/**/*)"
   - "Glob(**/*.md)"
 
 preconditions:
@@ -62,8 +63,9 @@ Sync current project state to wiki pages for GPT-5 context.
 > Updates the canonical Wiki pages (list all or "discovered via Glob(**/*.md)").
 > Idempotent given identical inputs; non-dry-run will overwrite existing pages.
 
-**Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+**Prompt:**
+
+1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Update relevant wiki pages with current project state:
    - Add new features to Current-Features.md
    - Update architecture changes in Architecture-Overview.md
@@ -73,10 +75,12 @@ Sync current project state to wiki pages for GPT-5 context.
 4) Produce wiki **artifacts** and **link** results in related Issue/PR.
 5) Emit **Result**: wiki content generated, update instructions provided, and next suggested command.
 
-**Examples:**  
+**Examples:**
+
 - `/github:update-wiki` → generates updated wiki content
 - `/github:update-wiki --dry-run` → show planned wiki updates only.
 
-**Failure & Recovery:**  
+**Failure & Recovery:**
+
 - If wiki structure missing → suggest creating basic wiki template.
 - If no changes to document → confirm current wiki is up to date.

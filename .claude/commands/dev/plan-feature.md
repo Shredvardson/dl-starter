@@ -30,7 +30,7 @@ postconditions:
 
 artifacts:
   produces:
-    - { path: "feature-plan.md", purpose: "Feature implementation plan" }
+    - { path: "plans/feature-[number]-[name].md", purpose: "Feature implementation plan" }
   updates: []
 
 permissions:
@@ -60,7 +60,7 @@ Plan a small, safe feature with clear acceptance criteria.
 **Prompt:**  
 1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Plan a minimal change.
-3) Return: scope, files to edit (src/\*\* only), risks, and a tiny test list.
+3) Return: scope, files to edit (src/** only), risks, and a tiny test list.
 4) Constraints: no new deps unless essential; keep UI basic; respect tokens; env via @/lib/env.
 5) Done when:
    - [ ] All planned files updated with minimal changes

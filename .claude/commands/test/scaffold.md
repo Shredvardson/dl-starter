@@ -15,7 +15,7 @@ arguments:
   - name: testDir
     type: string
     required: false
-    example: "apps/web/__tests__"
+    example: "__tests__"
 
 inputs: []
 outputs:
@@ -70,7 +70,7 @@ references:
 Write failing tests from approved plan before implementation.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Write failing tests only from the approved plan.
 3) Create test files in the target directory (default: `__tests__`, override with `--testDir`):
    - `__tests__/` for unit tests

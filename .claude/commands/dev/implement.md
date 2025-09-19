@@ -21,8 +21,10 @@ allowed-tools:
   - "Read(*)"
   - "Edit(*)"
   - "MultiEdit(*)"
-  - "Bash(pnpm typecheck:*)"
-  - "Bash(pnpm test:*)"
+  - "Bash(pnpm typecheck)"
+  - "Bash(pnpm test)"
+  - "Bash(pnpm test:unit)"
+  - "Bash(pnpm test:watch)"
 
 preconditions:
   - "Failing tests exist and have been scaffolded"

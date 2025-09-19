@@ -61,7 +61,7 @@ references:
 Define pure requirements - what and why only, no technical details.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**spec**) against `CLAUDE.md` decision rules.  
 2) Create a feature specification focused ONLY on what users need and why.
 3) Constraints:
    - NO tech stack, APIs, or implementation details

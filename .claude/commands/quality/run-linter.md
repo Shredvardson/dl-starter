@@ -64,11 +64,11 @@ references:
 Execute linting and fix all quality issues before commits.
 
 **Prompt:**  
-1) Confirm lane (**lightweight/spec**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Execute linting and formatting:
    ```bash
-   pnpm lint
-   pnpm format
+   pnpm lint || echo "Linting failed - see errors above"
+   pnpm format || echo "Formatting failed - check configuration"
    ```
 3) Check ESLint rules in `eslint.config.mjs` and Prettier config.
 4) Fix TypeScript errors, unused imports, and formatting issues.

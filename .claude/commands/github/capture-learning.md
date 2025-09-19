@@ -10,7 +10,7 @@ when_to_use: >
 arguments:
   - name: issueNumber
     type: string
-    pattern: "^(#)?\\d+$"
+    pattern: "^(#\\d+|[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+#\\d+|\\d+)$"
     required: false
     example: "42"
 
