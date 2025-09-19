@@ -72,7 +72,7 @@ Write failing tests from approved plan before implementation.
 **Prompt:**  
 1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
 2) Write failing tests only from the approved plan.
-3) Create test files in the target directory (default: `__tests__`, override with `--testDir`):
+3) Create test files in the target directory (default: `__tests__`, override with `testDir` argument):
    - `__tests__/` for unit tests
    - `tests/e2e/` for end-to-end tests
 4) Follow naming: `ComponentName.test.ts` or `feature-name.test.ts`

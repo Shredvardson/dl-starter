@@ -2,7 +2,7 @@
 # Machine-readable metadata (parsed into docs/commands/index.json)
 name: "/git:tag-release"
 version: "1.0.0"
-lane: "lightweight"
+lane: "dev"
 tags: ["git", "release", "semver"]
 when_to_use: >
   Create semantic version from conventional commits when ready to release.
@@ -22,8 +22,8 @@ requiresHITL: true
 riskPolicyRef: "docs/llm/risk-policy.json#releaseOperations"
 
 allowed-tools:
-  - "Bash(git log:*)"
-  - "Bash(git tag:*)"
+  - "Bash(git log --pretty=*:*)"
+  - "Bash(git tag -a v*:*)"
   - "Read(package.json)"
   - "Edit(package.json)"
   - "Edit(CHANGELOG.md)"
@@ -45,7 +45,7 @@ artifacts:
 permissions:
   tools:
     - name: "git"
-      ops: ["log", "tag", "push"]
+      ops: ["log", "tag_annotated", "push_tags"]
     - name: "filesystem"
       ops: ["read", "write"]
 
@@ -70,7 +70,7 @@ references:
 Create semantic version from conventional commits when ready to release.
 
 **Prompt:**  
-1) Confirm lane (**lightweight**) against `CLAUDE.md` decision rules.  
+1) Confirm lane (**dev**) against `CLAUDE.md` decision rules.  
 2) If `requiresHITL` true, ask for human confirmation citing `riskPolicyRef`.  
 3) Create semantic version following these steps:
    - Analyze commit history since last tag
