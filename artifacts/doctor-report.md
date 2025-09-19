@@ -1,13 +1,13 @@
 # 🏥 Starter Doctor Report
 
-**Generated:** 2025-09-16T09:31:19.774Z
-**Status:** ⚠️ WARNINGS
+**Generated:** 2025-09-19T16:25:06.635Z
+**Status:** ❌ FAILED
 
 ## 📊 Summary
 
-- ✅ **Passed:** 11
+- ✅ **Passed:** 10
 - ⚠️ **Warnings:** 1
-- ❌ **Failed:** 0
+- ❌ **Failed:** 1
 
 ## 📋 Issues by Category
 
@@ -16,8 +16,16 @@
 - Failures: 0
 - Warnings: 1
 
-⚠️ **Missing environment variables: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_SENTRY_DSN, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT**
+⚠️ **Missing environment variables: NEXT_PUBLIC_FLAG_BETA_FEATURE, AUTH_ENABLED, NEXT_PUBLIC_POSTHOG_KEY, NEXT_PUBLIC_SENTRY_DSN, SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT, DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET**
    💡 *Fix: Add missing keys to .env.local or update Vercel Environment Variables*
+
+### ❌ Constitution Integrity
+
+- Failures: 1
+- Warnings: 0
+
+❌ **Constitution checksum is stale - binding sources have changed**
+   💡 *Fix: Checksum has been updated. Review changes and commit the updated CONSTITUTION.CHECKSUM*
 
 ## 🔧 How to Reproduce Locally
 
@@ -25,6 +33,13 @@
 pnpm install
 pnpm run doctor
 ```
+
+## 🛠️ Remediation Steps
+
+1. Address each ❌ failure listed above
+2. Run `pnpm run doctor` locally to verify fixes
+3. Commit fixes and push to re-trigger CI
+4. Add items to `.doctor-allowlist.json` only if they are intentional
 
 ---
 

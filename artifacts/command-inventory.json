@@ -1,5 +1,5 @@
 {
-  "generated": "2025-09-16T09:31:19.775Z",
+  "generated": "2025-09-19T16:25:06.636Z",
   "packages": {
     "web": {
       "scripts": {
@@ -42,10 +42,11 @@
         "start": "turbo run start --filter=web",
         "lint": "turbo run lint",
         "format": "prettier -w .",
-        "test": "turbo run test",
-        "test:unit": "turbo run test:unit",
-        "test:e2e": "turbo run test:e2e --filter=web",
-        "test:e2e:ci": "playwright test --config playwright.config.ts",
+        "pretest": "tsx scripts/pretest-env-check.ts",
+        "test": "npm run pretest && turbo run test",
+        "test:unit": "npm run pretest && turbo run test:unit",
+        "test:e2e": "npm run pretest && turbo run test:e2e --filter=web",
+        "test:e2e:ci": "tsx scripts/pretest-env-check.ts && playwright test --config playwright.config.ts",
         "typecheck": "turbo run typecheck",
         "debug": "tsx scripts/debug.ts",
         "debug:sentry": "tsx scripts/debug.ts sentry:check",
@@ -66,6 +67,11 @@
         "git:finish": "bash scripts/git-workflow.sh finish-branch",
         "docs:check": "tsx scripts/docs-check.ts",
         "pr:create": "tsx scripts/create-pr.ts",
+        "wiki:generate": "node scripts/generate-wiki.js",
+        "commands:generate": "node scripts/generate-command-index.js",
+        "commands:check": "node scripts/generate-command-index.js && git diff --exit-code docs/commands/index.json || (echo 'Command index out of sync. Run: npm run commands:generate' && exit 1)",
+        "new-spec": "node scripts/new-spec.mjs",
+        "telemetry:report": "tsx scripts/telemetry-report.ts",
         "changeset": "changeset",
         "changeset:version": "changeset version",
         "changeset:publish": "changeset publish",
@@ -91,7 +97,10 @@
       "anchors": []
     },
     ".claude/commands/dev/plan-feature.md": {
-      "scripts": [],
+      "scripts": [
+        "`pnpm test`",
+        "`pnpm typecheck`"
+      ],
       "paths": [],
       "anchors": []
     },
@@ -103,13 +112,18 @@
     ".claude/commands/docs/generate.md": {
       "scripts": [],
       "paths": [
-        "`\n- Component props and usage\n- Installation/development setup\n- Available scripts in `"
+        "`/docs:generate`",
+        "`\n   - Component props and usage\n   - Installation/development setup\n   - Available scripts in `",
+        "`/docs:generate`",
+        "`/docs:generate --dry-run`"
       ],
       "anchors": []
     },
     ".claude/commands/git/commit.md": {
       "scripts": [],
-      "paths": [],
+      "paths": [
+        "`.  \n3) Write a concise Conventional Commit subject (≤72 chars) and an optional 2–4 bullet body.\n4) Use types: feat|fix|chore|docs|refactor|test|ci|build.\n5) Focus on the _user-visible_ impact; avoid file-by-file noise.\n6) Produce commit **artifacts** and **link** results in related Issue/PR.\n7) Emit **Result**: commit created, message used, and next suggested command.\n\n**Examples:**  \n- `"
+      ],
       "anchors": []
     },
     ".claude/commands/git/prepare-pr.md": {
@@ -128,14 +142,28 @@
         "`pnpm git:status`",
         "`pnpm git:cleanup`",
         "`pnpm git:cleanup-force`",
-        "`pnpm git:finish`",
-        "`pnpm git:start fix/login-bug`",
-        "`pnpm pr:create`",
         "`pnpm git:finish`"
       ],
       "paths": [
         "`scripts/git-workflow.sh`"
       ],
+      "anchors": []
+    },
+    ".claude/commands/github/capture-learning.md": {
+      "scripts": [],
+      "paths": [
+        "` decision rules.  \n2) Find the related GitHub issue for our current work and update the outcome section with:\n   - What actually happened vs planned\n   - Key learnings and patterns discovered\n   - Links to created artifacts (PRs, docs, wiki updates)\n   - Follow-up issues or tasks identified\n   - Reusable patterns for similar future work\n3) Close the issue if complete or update status/labels appropriately.\n4) Produce learning **artifacts** and **link** results in the related Issue/PR.\n5) Emit **Result**: issue updated, learnings captured, and next suggested command.\n\n**Examples:**  \n- `"
+      ],
+      "anchors": []
+    },
+    ".claude/commands/github/create-issue.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/github/update-wiki.md": {
+      "scripts": [],
+      "paths": [],
       "anchors": []
     },
     ".claude/commands/quality/run-linter.md": {
@@ -144,6 +172,23 @@
       "anchors": []
     },
     ".claude/commands/review/self-critique.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/spec/plan.md": {
+      "scripts": [],
+      "paths": [
+        "`docs/constitution.md`"
+      ],
+      "anchors": []
+    },
+    ".claude/commands/spec/specify.md": {
+      "scripts": [],
+      "paths": [],
+      "anchors": []
+    },
+    ".claude/commands/spec/tasks.md": {
       "scripts": [],
       "paths": [],
       "anchors": []
