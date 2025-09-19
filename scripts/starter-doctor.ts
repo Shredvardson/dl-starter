@@ -566,9 +566,41 @@ function generateCommandInventory(): any {
         const scriptMatches = content.match(/`(?:pnpm|npm|turbo)[^`]+`/g) || [];
         scripts.push(...scriptMatches);
         
-        // Extract paths
+        // Extract paths - only clean file paths and globs
         const pathMatches = content.match(/`[^`]*(?:apps|packages|scripts|docs)[^`]*`/g) || [];
-        paths.push(...pathMatches);
+        const cleanPaths = pathMatches
+          .map(match => {
+            // Remove backticks
+            let path = match.replace(/`/g, '');
+            
+            // Skip if it looks like a command (starts with /)
+            if (path.startsWith('/')) {
+              return null;
+            }
+            
+            // Skip if it contains newlines or markdown formatting
+            if (path.includes('\n') || path.includes('**') || path.includes(' - ')) {
+              return null;
+            }
+            
+            // Extract just the path part if it's mixed with prose
+            const pathRegex = /(?:^|\s)((?:apps|packages|scripts|docs|src|\.)[\/\w.-]*[\/\w.-]+)(?:\s|$)/;
+            const pathMatch = path.match(pathRegex);
+            if (pathMatch) {
+              return pathMatch[1].trim();
+            }
+            
+            // If it's a clean simple path, use it
+            if (/^[a-zA-Z0-9\/._-]+$/.test(path.trim()) && path.length < 100) {
+              return path.trim();
+            }
+            
+            return null;
+          })
+          .filter(path => path !== null && path.length > 0)
+          .filter((path, index, array) => array.indexOf(path) === index); // deduplicate
+        
+        paths.push(...cleanPaths);
         
         // Extract links with anchors
         const anchorMatches = content.match(/\[[^\]]+\]\([^)]+#[^)]+\)/g) || [];
