@@ -40,6 +40,7 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+    NEXT_PUBLIC_ENABLE_ANALYTICS: zBool.default(false),
     NEXT_PUBLIC_FLAG_BETA_FEATURE: zBool.default(false),
     
     // Supabase (public - needed for browser client)
@@ -70,6 +71,7 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
     NEXT_PUBLIC_FLAG_BETA_FEATURE: process.env.NEXT_PUBLIC_FLAG_BETA_FEATURE,
     
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
